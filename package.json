@@ -1,0 +1,11 @@
+{
+  "name": "cv-roaster",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "bun run --filter frontend dev",
+    "build": "bun run --filter frontend build"
+  }
+}
