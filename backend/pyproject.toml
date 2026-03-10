@@ -1,9 +1,13 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI-powered CV roast service"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "pydantic-ai-slim[huggingface]>=1.67.0",
+    "fastapi[standard]>=0.135.1",
+    "pydantic-ai-slim[openai]>=1.67.0",
+    "pymupdf4llm>=0.3.4",
+    "python-multipart>=0.0.22",
+    "httpx>=0.28.0",
 ]
