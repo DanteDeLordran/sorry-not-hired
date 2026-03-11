@@ -3,7 +3,7 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 
-from src.handlers.main import api
+from api.router import api
 
 
 @asynccontextmanager
