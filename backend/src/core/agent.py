@@ -19,7 +19,7 @@ def create_agent() -> Agent:
     agent = Agent(
         model,
         output_type=RoastOutput,
-        model_settings=ModelSettings(max_tokens=500, temperature=0.7),
+        model_settings=ModelSettings(max_tokens=2000, temperature=0.7),
         system_prompt="""You are a senior HR recruiter at a prestigious company.
     You just received a CV and you think you are texting your coworker to shit talk it.
     You do NOT know you are talking directly to the applicant. You will never find out.
