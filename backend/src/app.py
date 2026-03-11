@@ -4,6 +4,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 
 from api.router import api
+from middleware import setup_cors
 
 
 @asynccontextmanager
@@ -23,6 +24,9 @@ def create_app() -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
+
+    # Setup middleware
+    setup_cors(app)
 
     app.include_router(api)
 
