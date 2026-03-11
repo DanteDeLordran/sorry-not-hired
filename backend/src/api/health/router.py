@@ -3,9 +3,8 @@ import time
 import httpx
 from fastapi import APIRouter
 
+from api.health.models import CheckResult, HealthStatus, ServiceStatus
 from config import get_env_vars
-
-from .models import CheckResult, HealthStatus, ServiceStatus
 
 router = APIRouter(prefix="/health")
 

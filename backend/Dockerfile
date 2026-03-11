@@ -1,30 +1,41 @@
 FROM python:3.14
 
+ENV PYTHONUNBUFFERED=1
+
+# Install uv
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
 COPY --from=ghcr.io/astral-sh/uv:0.9.29 /uv /uvx /bin/
 
+# Compile bytecode
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#compiling-bytecode
 ENV UV_COMPILE_BYTECODE=1
+
+# uv Cache
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#caching
 ENV UV_LINK_MODE=copy
-ENV PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app/
 
-# Copy dependency files first for better layer caching
-COPY pyproject.toml uv.lock ./
+# Place executables in the environment at the front of the path
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#using-the-environment
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Install dependencies with cache
+# Install dependencies
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-workspace --package app
 
-# Copy source code
-COPY ./backend/src /app/backend/src
+COPY ./backend/src /app/backend/app
+
+# Sync the project
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --package app
 
 WORKDIR /app/backend/
 
-# Expose default FastAPI port
-EXPOSE 8000
-
-# Health check using the readiness endpoint
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD python -c "import httpx; r = httpx.get('http://localhost:8000/api/v1/health/readiness', timeout=5); exit(0 if r.status_code == 200 else 1)" || exit 1
-
-CMD ["fastapi", "run", "src/app.py", "--port", "8000", "--host", "0.0.0.0"]
+CMD ["fastapi", "run", "--workers", "4", "app/main.py"]
