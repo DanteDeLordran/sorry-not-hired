@@ -148,14 +148,7 @@ export function ChatPhone() {
 					pointer-events: none;
 				}
 
-				.scene::after {
-					content: '';
-					position: absolute;
-					top: -20%; right: -10%;
-					width: 600px; height: 900px;
-					background: conic-gradient(from 200deg at 80% 0%, transparent 0deg, rgba(200,169,110,0.04) 15deg, transparent 30deg, rgba(200,169,110,0.03) 45deg, transparent 60deg);
-					pointer-events: none;
-				}
+
 
 				.desk {
 					position: absolute;
@@ -225,7 +218,7 @@ export function ChatPhone() {
 				.watermark { position: absolute; bottom: 0.75rem; left: 50%; transform: translateX(-50%); font-family: var(--font-display); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(200,169,110,0.12); white-space: nowrap; z-index: 5; user-select: none; }
 
 				/* Layout */
-				.layout { position: relative; z-index: 10; display: flex; gap: 2rem; align-items: flex-end; width: 100%; max-width: 860px; }
+				.layout { position: relative; z-index: 10; display: flex; gap: 2rem; align-items: flex-end; width: 100%; max-width: 1020px; }
 
 				/* HR Panel */
 				.hr-panel { flex-shrink: 0; width: 190px; display: flex; flex-direction: column; gap: 0.875rem; padding-bottom: 0.5rem; }
@@ -257,7 +250,7 @@ export function ChatPhone() {
 				.hr-mood-caption { font-size: 9px; color: var(--accent); text-align: right; }
 
 				/* Phone */
-				.phone-container { flex-shrink: 0; position: relative; width: 100%; max-width: 320px; }
+				.phone-container { flex-shrink: 0; position: relative; width: 100%; max-width: 400px; }
 				.phone-shadow { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); width: 80%; height: 25px; background: radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, transparent 70%); filter: blur(8px); }
 
 				.phone-frame {
@@ -362,9 +355,7 @@ export function ChatPhone() {
 			<div className="scene">
 				<div className="desk" />
 
-				<div className="watermark">
-					SorryNotHired · Talent Acquisition Platform
-				</div>
+				<div className="watermark">SorryNotHired · Talent Acquisition Platform</div>
 
 				<div className="layout">
 					{/* LEFT */}
@@ -373,29 +364,15 @@ export function ChatPhone() {
 							<div className="hr-id-card-logo">Acme Corp HR</div>
 							<div className="hr-id-card-avatar">S</div>
 							<div className="hr-id-card-name">Sarah Chen</div>
-							<div className="hr-id-card-title">
-								<span className="hr-status-dot" />
-								Senior Recruiter
-							</div>
+							<div className="hr-id-card-title"><span className="hr-status-dot" />Senior Recruiter</div>
 							<div className="hr-divider" />
-							<div className="hr-stat">
-								<span className="hr-stat-label">CVs reviewed</span>
-								<span className="hr-stat-val">1,847</span>
-							</div>
-							<div className="hr-stat">
-								<span className="hr-stat-label">Hired</span>
-								<span className="hr-stat-val">12</span>
-							</div>
-							<div className="hr-stat">
-								<span className="hr-stat-label">Response time</span>
-								<span className="hr-stat-val">~3 weeks</span>
-							</div>
+							<div className="hr-stat"><span className="hr-stat-label">CVs reviewed</span><span className="hr-stat-val">1,847</span></div>
+							<div className="hr-stat"><span className="hr-stat-label">Hired</span><span className="hr-stat-val">12</span></div>
+							<div className="hr-stat"><span className="hr-stat-label">Response time</span><span className="hr-stat-val">~3 weeks</span></div>
 						</div>
 						<div className="hr-mood">
 							<div className="hr-mood-label">Current patience level</div>
-							<div className="hr-mood-track">
-								<div className="hr-mood-fill" />
-							</div>
+							<div className="hr-mood-track"><div className="hr-mood-fill" /></div>
 							<div className="hr-mood-caption">Dangerously low</div>
 						</div>
 					</div>
@@ -624,33 +601,15 @@ export function ChatPhone() {
 						</div>
 						<div className="reject-meter">
 							<div className="reject-label">Rejection probability</div>
-							<div className="reject-track">
-								<div className="reject-fill" />
-							</div>
-							<div className="reject-labels">
-								<span>Hired</span>
-								<span>82%</span>
-								<span>Rejected</span>
-							</div>
+							<div className="reject-track"><div className="reject-fill" /></div>
+							<div className="reject-labels"><span>Hired</span><span>82%</span><span>Rejected</span></div>
 						</div>
 						<div className="activity">
 							<div className="activity-label">Recent activity</div>
-							<div className="activity-item">
-								<div className="a-dot r" />
-								<span>John D. — rejected after 2s</span>
-							</div>
-							<div className="activity-item">
-								<div className="a-dot r" />
-								<span>Maria K. — "not a culture fit"</span>
-							</div>
-							<div className="activity-item">
-								<div className="a-dot g" />
-								<span>Alex T. — advanced to ghost</span>
-							</div>
-							<div className="activity-item">
-								<div className="a-dot r" />
-								<span>Sam R. — overqualified</span>
-							</div>
+							<div className="activity-item"><div className="a-dot r" /><span>John D. — rejected after 2s</span></div>
+							<div className="activity-item"><div className="a-dot r" /><span>Maria K. — "not a culture fit"</span></div>
+							<div className="activity-item"><div className="a-dot g" /><span>Alex T. — advanced to ghost</span></div>
+							<div className="activity-item"><div className="a-dot r" /><span>Sam R. — overqualified</span></div>
 						</div>
 					</div>
 				</div>
