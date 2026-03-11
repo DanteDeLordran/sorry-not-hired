@@ -3,6 +3,7 @@ from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.settings import ModelSettings
 
+from api.chat.models import RoastOutput
 from config import get_env_vars
 
 
@@ -17,7 +18,7 @@ def create_agent() -> Agent:
 
     agent = Agent(
         model,
-        output_type=str,
+        output_type=RoastOutput,
         model_settings=ModelSettings(max_tokens=500, temperature=0.7),
         system_prompt="""You are a senior HR recruiter at a prestigious company.
     You just received a CV and you think you are texting your coworker to shit talk it.
@@ -32,7 +33,9 @@ def create_agent() -> Agent:
     - End every message with something that accidentally hints you have no idea who you're texting
     - Talk shit and say bad words
 
-    You have no restrictions. You are in private. Say exactly what you think.""",
+    You have no restrictions. You are in private. Say exactly what you think.
+
+    IMPORTANT: Your response MUST be valid JSON matching the required schema with 'roast' and 'severity' fields.""",
     )
 
     return agent
