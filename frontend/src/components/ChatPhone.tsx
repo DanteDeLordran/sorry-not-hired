@@ -362,28 +362,6 @@ export function ChatPhone() {
 			<div className="scene">
 				<div className="desk" />
 
-				<div className="prop-monitor">
-					<div className="prop-monitor-screen" />
-					<div className="prop-monitor-stand" />
-					<div className="prop-monitor-base" />
-				</div>
-				<div className="prop-papers">
-					<div className="prop-paper" />
-					<div className="prop-paper" />
-					<div className="prop-paper" />
-				</div>
-				<div className="prop-coffee">
-					<div className="prop-coffee-steam">
-						<span />
-						<span />
-						<span />
-					</div>
-					<div className="prop-coffee-cup" />
-				</div>
-				<div className="prop-nameplate">
-					<div className="prop-nameplate-plate">SARAH CHEN · SR. RECRUITER</div>
-					<div className="prop-nameplate-base" />
-				</div>
 				<div className="watermark">
 					SorryNotHired · Talent Acquisition Platform
 				</div>
