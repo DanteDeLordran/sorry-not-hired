@@ -1,7 +1,7 @@
 import time
 
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
 from api.health.models import CheckResult, HealthStatus, ServiceStatus
 from config import get_env_vars
@@ -9,7 +9,7 @@ from config import get_env_vars
 router = APIRouter(prefix="/health")
 
 
-@router.get("/liveness")
+@router.get("/liveness", status_code=status.HTTP_200_OK)
 async def liveness() -> HealthStatus:
     """Liveness probe - checks if the application is running."""
     return HealthStatus(
