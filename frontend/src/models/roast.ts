@@ -1,5 +1,5 @@
 export interface RoastResponse {
-  roast: string;
-  filename: string;
-  severity: "light" | "medium" | "harsh";
+	roast: string;
+	filename: string;
+	severity: "light" | "medium" | "harsh";
 }
