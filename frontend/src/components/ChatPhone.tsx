@@ -99,270 +99,13 @@ export function ChatPhone() {
 		});
 
 	return (
-		<>
-			<style>{`
-				@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-				*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-				html, body, #root { width: 100%; height: 100%; }
-
-				:root {
-					--slate-950: #0b1221;
-					--slate-900: #0f1e30;
-					--slate-800: #162438;
-					--slate-700: #1e3347;
-					--slate-600: #2a4560;
-					--slate-400: #6b8cad;
-					--slate-300: #94aec6;
-					--slate-200: #c4d4e3;
-					--accent: #c8a96e;
-					--accent-light: #e8d5a8;
-					--danger: #e05555;
-					--success: #4caf7d;
-					--white: #f4f8fc;
-					--font-display: 'Playfair Display', Georgia, serif;
-					--font-body: 'DM Sans', sans-serif;
-				}
-
-				.scene {
-					font-family: var(--font-body);
-					width: 100%;
-					min-height: 100vh;
-					background: var(--slate-950);
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					padding: 2rem 1rem;
-					position: relative;
-					overflow: hidden;
-				}
-
-				.scene::before {
-					content: '';
-					position: absolute;
-					inset: 0;
-					background-image:
-						linear-gradient(rgba(100,160,220,0.025) 1px, transparent 1px),
-						linear-gradient(90deg, rgba(100,160,220,0.025) 1px, transparent 1px);
-					background-size: 32px 32px;
-					pointer-events: none;
-				}
-
-				.desk {
-					position: absolute;
-					bottom: 0; left: 0; right: 0;
-					height: 33%;
-					background: linear-gradient(180deg, var(--slate-900) 0%, #091525 100%);
-					border-top: 1px solid rgba(200,169,110,0.1);
-					pointer-events: none;
-				}
-				.desk::before {
-					content: '';
-					position: absolute;
-					top: 0; left: 0; right: 0;
-					height: 1px;
-					background: linear-gradient(90deg, transparent, rgba(200,169,110,0.25), transparent);
-				}
-
-				/* Props */
-				.prop-monitor { position: absolute; left: 4%; bottom: 29%; opacity: 0.15; pointer-events: none; }
-				.prop-monitor-screen {
-					width: 170px; height: 105px;
-					background: linear-gradient(135deg, var(--slate-800), var(--slate-700));
-					border: 2px solid var(--slate-600);
-					border-radius: 4px;
-					overflow: hidden;
-				}
-				.prop-monitor-screen::after {
-					content: '';
-					display: block;
-					width: 100%; height: 100%;
-					background: repeating-linear-gradient(0deg, transparent, transparent 6px, rgba(100,160,220,0.12) 6px, rgba(100,160,220,0.12) 7px);
-				}
-				.prop-monitor-stand { width: 22px; height: 18px; background: var(--slate-700); margin: 0 auto; clip-path: polygon(20% 0%,80% 0%,100% 100%,0% 100%); }
-				.prop-monitor-base { width: 65px; height: 5px; background: var(--slate-700); margin: 0 auto; border-radius: 2px; }
-
-				.prop-papers { position: absolute; left: 7%; bottom: 25%; opacity: 0.12; pointer-events: none; }
-				.prop-paper {
-					width: 48px; height: 62px;
-					background: var(--slate-200); border-radius: 1px;
-					position: absolute;
-					overflow: hidden;
-				}
-				.prop-paper::after { content: ''; position: absolute; inset: 5px; background: repeating-linear-gradient(0deg, transparent, transparent 5px, rgba(0,0,0,0.12) 5px, rgba(0,0,0,0.12) 6px); }
-				.prop-paper:nth-child(1) { transform: rotate(-7deg); }
-				.prop-paper:nth-child(2) { transform: rotate(4deg); left: 8px; top: 3px; }
-				.prop-paper:nth-child(3) { transform: rotate(11deg); left: 13px; top: 1px; }
-
-				.prop-coffee { position: absolute; right: 6%; bottom: 27%; opacity: 0.18; pointer-events: none; }
-				.prop-coffee-steam { display: flex; gap: 5px; justify-content: center; margin-bottom: 3px; }
-				.prop-coffee-steam span { display: block; width: 2px; height: 10px; background: rgba(200,169,110,0.5); border-radius: 1px; animation: steam 2s ease-in-out infinite; }
-				.prop-coffee-steam span:nth-child(2) { animation-delay: 0.3s; height: 14px; }
-				.prop-coffee-steam span:nth-child(3) { animation-delay: 0.6s; }
-				@keyframes steam { 0%,100%{transform:translateY(0) scaleX(1);opacity:.4} 50%{transform:translateY(-6px) scaleX(1.3);opacity:.7} }
-				.prop-coffee-cup {
-					width: 30px; height: 35px;
-					background: linear-gradient(180deg, var(--slate-600), var(--slate-700));
-					border-radius: 2px 2px 5px 5px;
-					border: 1px solid var(--slate-500);
-					position: relative;
-				}
-				.prop-coffee-cup::after { content: ''; position: absolute; top: 8px; right: -9px; width: 9px; height: 13px; border: 2px solid var(--slate-500); border-left: none; border-radius: 0 5px 5px 0; }
-
-				.prop-nameplate { position: absolute; right: 7%; bottom: 25.5%; opacity: 0.22; pointer-events: none; }
-				.prop-nameplate-plate { background: linear-gradient(135deg, #b8860b, #8b6914); color: rgba(255,255,255,0.9); font-family: var(--font-display); font-size: 7px; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 2px 2px 0 0; white-space: nowrap; text-align: center; }
-				.prop-nameplate-base { width: 100%; height: 5px; background: linear-gradient(135deg, #8b6914, #6b5010); border-radius: 0 0 2px 2px; }
-
-				.watermark { position: absolute; bottom: 0.75rem; left: 50%; transform: translateX(-50%); font-family: var(--font-display); font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(200,169,110,0.12); white-space: nowrap; z-index: 5; user-select: none; }
-
-				/* Layout — centered, bigger panels */
-				.layout {
-					position: relative;
-					z-index: 10;
-					display: flex;
-					gap: 2rem;
-					align-items: center;   /* vertically center all three columns */
-					justify-content: center;
-					width: 100%;
-					max-width: 1160px;
-				}
-
-				/* HR Panel — wider */
-				.hr-panel { flex-shrink: 0; width: 230px; display: flex; flex-direction: column; gap: 1rem; }
-
-				.hr-id-card {
-					background: linear-gradient(160deg, var(--slate-800) 0%, var(--slate-900) 100%);
-					border: 1px solid rgba(200,169,110,0.18);
-					border-radius: 10px;
-					padding: 1.375rem 1.25rem;
-					position: relative;
-					overflow: hidden;
-				}
-				.hr-id-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), transparent); }
-				.hr-id-card-logo { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.1rem; }
-				.hr-id-card-avatar { width: 58px; height: 58px; border-radius: 50%; background: linear-gradient(135deg, #e8a4c0, #c2507a); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 22px; color: white; font-weight: 600; margin-bottom: 0.8rem; border: 2px solid rgba(200,169,110,0.25); }
-				.hr-id-card-name { font-family: var(--font-display); font-size: 16px; color: var(--white); margin-bottom: 3px; }
-				.hr-id-card-title { font-size: 11px; color: var(--slate-400); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem; }
-				.hr-status-dot { display: inline-block; width: 7px; height: 7px; background: var(--success); border-radius: 50%; margin-right: 5px; box-shadow: 0 0 6px var(--success); animation: pdot 2s ease-in-out infinite; }
-				@keyframes pdot { 0%,100%{box-shadow:0 0 6px var(--success)} 50%{box-shadow:0 0 12px var(--success)} }
-				.hr-divider { height: 1px; background: linear-gradient(90deg, rgba(200,169,110,0.18), transparent); margin-bottom: 1rem; }
-				.hr-stat { display: flex; justify-content: space-between; margin-bottom: 0.45rem; }
-				.hr-stat-label { font-size: 11px; color: var(--slate-400); letter-spacing: 0.06em; text-transform: uppercase; }
-				.hr-stat-val { font-size: 12px; color: var(--accent-light); font-weight: 500; }
-
-				.hr-mood { background: linear-gradient(160deg, var(--slate-800), var(--slate-900)); border: 1px solid rgba(200,169,110,0.1); border-radius: 10px; padding: 1rem 1.25rem; }
-				.hr-mood-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate-400); margin-bottom: 0.6rem; }
-				.hr-mood-track { height: 5px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
-				.hr-mood-fill { height: 100%; width: 72%; background: linear-gradient(90deg, var(--danger), var(--accent)); border-radius: 3px; }
-				.hr-mood-caption { font-size: 11px; color: var(--accent); text-align: right; }
-
-				/* Phone */
-				.phone-container { flex-shrink: 0; position: relative; width: 100%; max-width: 400px; }
-				.phone-shadow { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); width: 80%; height: 25px; background: radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, transparent 70%); filter: blur(8px); }
-
-				.phone-frame {
-					position: relative;
-					width: 100%;
-					aspect-ratio: 9 / 19.5;
-					background: linear-gradient(170deg, #1c2a3a 0%, #0f1e2e 60%, #091525 100%);
-					border-radius: 42px;
-					overflow: hidden;
-					box-shadow:
-						inset 0 0 0 1px rgba(255,255,255,0.06),
-						inset 0 1px 0 rgba(255,255,255,0.09),
-						0 0 0 9px #080f18,
-						0 0 0 10px rgba(200,169,110,0.08),
-						0 28px 55px rgba(0,0,0,0.75);
-				}
-				.phone-frame::before { content: ''; position: absolute; right: -11px; top: 25%; width: 3px; height: 48px; background: #080f18; border-radius: 0 2px 2px 0; box-shadow: 0 58px 0 #080f18; }
-				.phone-frame::after { content: ''; position: absolute; left: -11px; top: 20%; width: 3px; height: 33px; background: #080f18; border-radius: 2px 0 0 2px; box-shadow: 0 48px 0 #080f18, 0 96px 0 #080f18; }
-
-				.phone-notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 105px; height: 27px; background: #080f18; border-radius: 0 0 17px 17px; z-index: 20; }
-				.phone-statusbar { position: absolute; top: 7px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 22px; z-index: 10; font-family: var(--font-body); font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.5); }
-				.phone-battery { width: 19px; height: 9px; border: 1px solid currentColor; border-radius: 2px; position: relative; opacity: 0.7; }
-				.phone-battery::before { content: ''; position: absolute; inset: 2px; background: currentColor; border-radius: 1px; width: 60%; }
-				.phone-battery::after { content: ''; position: absolute; right: -3px; top: 50%; transform: translateY(-50%); width: 2px; height: 4px; background: currentColor; border-radius: 0 1px 1px 0; }
-
-				.phone-inner { display: flex; flex-direction: column; height: 100%; padding-top: 34px; }
-
-				.chat-header { background: rgba(9,21,37,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(200,169,110,0.1); padding: 10px 14px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-				.chat-header-back { background: none; border: none; cursor: pointer; color: var(--accent); padding: 0; display: flex; align-items: center; }
-				.chat-header-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #e8a4c0, #c2507a); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 14px; color: white; font-weight: 600; flex-shrink: 0; border: 1.5px solid rgba(200,169,110,0.22); position: relative; }
-				.chat-header-online { position: absolute; bottom: -1px; right: -1px; width: 9px; height: 9px; background: var(--success); border: 1.5px solid #091525; border-radius: 50%; }
-				.chat-header-info { flex: 1; min-width: 0; }
-				.chat-header-name { font-family: var(--font-display); font-size: 13px; color: var(--white); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-				.chat-header-sub { font-size: 10px; color: var(--accent); letter-spacing: 0.07em; text-transform: uppercase; }
-				.chat-header-call { background: none; border: none; cursor: pointer; color: var(--slate-400); padding: 0; display: flex; }
-
-				.chat-messages-wrapper { flex: 1; overflow: hidden; position: relative; min-height: 0; }
-				.chat-messages-wrapper::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 28px; background: linear-gradient(to bottom, transparent, rgba(15,30,48,0.97)); pointer-events: none; z-index: 2; }
-
-				.chat-messages { height: 100%; overflow-y: auto; padding: 11px 10px; display: flex; flex-direction: column; gap: 8px; scrollbar-width: none; background: linear-gradient(180deg, rgba(11,18,33,0.95) 0%, rgba(15,30,48,0.92) 100%); }
-				.chat-messages::-webkit-scrollbar { display: none; }
-
-				.date-chip { text-align: center; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate-400); position: relative; margin: 3px 0; }
-				.date-chip::before, .date-chip::after { content: ''; position: absolute; top: 50%; width: 28%; height: 1px; background: rgba(200,169,110,0.08); }
-				.date-chip::before { left: 0; }
-				.date-chip::after { right: 0; }
-
-				.bubble-row { display: flex; }
-				.bubble-row.user { justify-content: flex-end; }
-				.bubble-row.hr { justify-content: flex-start; }
-
-				.bubble { max-width: 78%; padding: 8px 11px; font-size: 12.5px; line-height: 1.5; color: var(--white); white-space: pre-wrap; word-break: break-word; }
-				.bubble.hr { background: rgba(30,51,71,0.8); border: 1px solid rgba(200,169,110,0.09); border-radius: 2px 11px 11px 11px; backdrop-filter: blur(8px); }
-				.bubble.user { background: linear-gradient(135deg, #c8a96e 0%, #a07a3a 100%); color: #0b1221; border-radius: 11px 2px 11px 11px; font-weight: 500; }
-				.bubble-time { font-size: 10px; margin-top: 3px; display: block; letter-spacing: 0.04em; }
-				.bubble.hr .bubble-time { color: var(--slate-400); }
-				.bubble.user .bubble-time { color: rgba(11,18,33,0.45); text-align: right; }
-
-				.typing-bubble { background: rgba(30,51,71,0.8); border: 1px solid rgba(200,169,110,0.09); border-radius: 2px 11px 11px 11px; padding: 10px 14px; display: flex; gap: 5px; align-items: center; }
-				.typing-dot { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; animation: tdot 1.4s ease-in-out infinite; }
-				.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-				.typing-dot:nth-child(3) { animation-delay: 0.4s; }
-				@keyframes tdot { 0%,60%,100%{transform:scale(0.8);opacity:.4} 30%{transform:scale(1.2);opacity:1} }
-
-				.chat-input-area { background: rgba(9,21,37,0.97); border-top: 1px solid rgba(200,169,110,0.09); padding: 10px 12px 14px; flex-shrink: 0; }
-				.chat-input-row { display: flex; align-items: center; gap: 8px; }
-				.chat-attach-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(200,169,110,0.2); background: rgba(200,169,110,0.06); color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-				.chat-input-field { flex: 1; background: rgba(255,255,255,0.035); border: 1px solid rgba(200,169,110,0.1); border-radius: 17px; padding: 8px 14px; min-height: 36px; display: flex; align-items: center; }
-				.chat-placeholder { color: rgba(255,255,255,0.18); font-style: italic; font-size: 12px; }
-				.chat-file-row { display: flex; align-items: center; gap: 6px; width: 100%; }
-				.chat-file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--accent-light); }
-				.chat-file-clear { background: none; border: none; cursor: pointer; color: var(--slate-400); padding: 0; display: flex; flex-shrink: 0; }
-				.chat-send-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--accent), #a07a3a); color: var(--slate-950); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 3px 10px rgba(200,169,110,0.28); }
-				.chat-send-btn:disabled { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.18); cursor: not-allowed; box-shadow: none; }
-
-				.phone-home-bar { position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%); width: 95px; height: 3px; background: rgba(255,255,255,0.16); border-radius: 99px; z-index: 20; }
-
-				/* Right panel — wider */
-				.status-panel { flex-shrink: 0; width: 220px; display: flex; flex-direction: column; gap: 1rem; }
-
-				.stat-card { background: linear-gradient(160deg, var(--slate-800), var(--slate-900)); border: 1px solid rgba(200,169,110,0.12); border-radius: 10px; padding: 1.125rem 1.25rem; position: relative; overflow: hidden; }
-				.stat-card::before { content: ''; position: absolute; top: 0; right: 0; width: 65px; height: 65px; background: radial-gradient(circle at top right, rgba(200,169,110,0.05), transparent); }
-				.stat-label { font-size: 11px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--slate-400); margin-bottom: 0.55rem; }
-				.stat-value { font-family: var(--font-display); font-size: 26px; color: var(--white); font-weight: 400; line-height: 1; margin-bottom: 3px; }
-				.stat-sub { font-size: 11px; color: var(--accent); }
-
-				.reject-meter { background: linear-gradient(160deg, var(--slate-800), var(--slate-900)); border: 1px solid rgba(200,169,110,0.12); border-radius: 10px; padding: 1.125rem 1.25rem; }
-				.reject-label { font-size: 11px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--slate-400); margin-bottom: 0.7rem; }
-				.reject-track { height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
-				.reject-fill { height: 100%; width: 82%; background: linear-gradient(90deg, var(--success), var(--accent) 40%, var(--danger)); border-radius: 3px; }
-				.reject-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--slate-400); }
-
-				.activity { background: linear-gradient(160deg, var(--slate-800), var(--slate-900)); border: 1px solid rgba(200,169,110,0.12); border-radius: 10px; padding: 1.125rem 1.25rem; }
-				.activity-label { font-size: 11px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--slate-400); margin-bottom: 0.7rem; }
-				.activity-item { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 8px; font-size: 11px; color: var(--slate-300); line-height: 1.45; }
-				.activity-item:last-child { margin-bottom: 0; }
-				.a-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 3.5px; flex-shrink: 0; }
-				.a-dot.r { background: var(--danger); }
-				.a-dot.g { background: var(--success); }
-			`}</style>
-
+		<div className="chatphone-scope">
 			<div className="scene">
 				<div className="desk" />
 
-				<div className="watermark">SorryNotHired · Talent Acquisition Platform</div>
+				<div className="watermark">
+					SorryNotHired · Talent Acquisition Platform
+				</div>
 
 				<div className="layout">
 					{/* LEFT */}
@@ -371,15 +114,29 @@ export function ChatPhone() {
 							<div className="hr-id-card-logo">Acme Corp HR</div>
 							<div className="hr-id-card-avatar">S</div>
 							<div className="hr-id-card-name">Sarah Chen</div>
-							<div className="hr-id-card-title"><span className="hr-status-dot" />Senior Recruiter</div>
+							<div className="hr-id-card-title">
+								<span className="hr-status-dot" />
+								Senior Recruiter
+							</div>
 							<div className="hr-divider" />
-							<div className="hr-stat"><span className="hr-stat-label">CVs reviewed</span><span className="hr-stat-val">1,847</span></div>
-							<div className="hr-stat"><span className="hr-stat-label">Hired</span><span className="hr-stat-val">12</span></div>
-							<div className="hr-stat"><span className="hr-stat-label">Response time</span><span className="hr-stat-val">~3 weeks</span></div>
+							<div className="hr-stat">
+								<span className="hr-stat-label">CVs reviewed</span>
+								<span className="hr-stat-val">1,847</span>
+							</div>
+							<div className="hr-stat">
+								<span className="hr-stat-label">Hired</span>
+								<span className="hr-stat-val">12</span>
+							</div>
+							<div className="hr-stat">
+								<span className="hr-stat-label">Response time</span>
+								<span className="hr-stat-val">~3 weeks</span>
+							</div>
 						</div>
 						<div className="hr-mood">
 							<div className="hr-mood-label">Current patience level</div>
-							<div className="hr-mood-track"><div className="hr-mood-fill" /></div>
+							<div className="hr-mood-track">
+								<div className="hr-mood-fill" />
+							</div>
 							<div className="hr-mood-caption">Dangerously low</div>
 						</div>
 					</div>
@@ -608,19 +365,37 @@ export function ChatPhone() {
 						</div>
 						<div className="reject-meter">
 							<div className="reject-label">Rejection probability</div>
-							<div className="reject-track"><div className="reject-fill" /></div>
-							<div className="reject-labels"><span>Hired</span><span>82%</span><span>Rejected</span></div>
+							<div className="reject-track">
+								<div className="reject-fill" />
+							</div>
+							<div className="reject-labels">
+								<span>Hired</span>
+								<span>82%</span>
+								<span>Rejected</span>
+							</div>
 						</div>
 						<div className="activity">
 							<div className="activity-label">Recent activity</div>
-							<div className="activity-item"><div className="a-dot r" /><span>John D. — rejected after 2s</span></div>
-							<div className="activity-item"><div className="a-dot r" /><span>Maria K. — "not a culture fit"</span></div>
-							<div className="activity-item"><div className="a-dot g" /><span>Alex T. — advanced to ghost</span></div>
-							<div className="activity-item"><div className="a-dot r" /><span>Sam R. — overqualified</span></div>
+							<div className="activity-item">
+								<div className="a-dot r" />
+								<span>John D. — rejected after 2s</span>
+							</div>
+							<div className="activity-item">
+								<div className="a-dot r" />
+								<span>Maria K. — "not a culture fit"</span>
+							</div>
+							<div className="activity-item">
+								<div className="a-dot g" />
+								<span>Alex T. — advanced to ghost</span>
+							</div>
+							<div className="activity-item">
+								<div className="a-dot r" />
+								<span>Sam R. — overqualified</span>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</>
+		</div>
 	);
 }
