@@ -305,6 +305,43 @@
 	user-select: none;
 }
 
+.chatphone-scope .dev-badge {
+	position: absolute;
+	top: 1.5rem;
+	right: 1.5rem;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 14px;
+	background: rgba(200, 169, 110, 0.06);
+	border: 1px solid rgba(200, 169, 110, 0.12);
+	border-radius: 16px;
+	font-size: 12px;
+	color: rgba(200, 169, 110, 0.55);
+	text-decoration: none;
+	white-space: nowrap;
+	transition: all 0.2s ease;
+	z-index: 5;
+}
+
+.chatphone-scope .dev-badge:hover {
+	background: rgba(200, 169, 110, 0.12);
+	border-color: rgba(200, 169, 110, 0.25);
+	color: rgba(200, 169, 110, 0.85);
+	transform: translateY(-1px);
+}
+
+.chatphone-scope .dev-badge svg {
+	width: 16px;
+	height: 16px;
+	opacity: 0.7;
+	transition: opacity 0.2s ease;
+}
+
+.chatphone-scope .dev-badge:hover svg {
+	opacity: 1;
+}
+
 /* Layout — centered, bigger panels */
 .chatphone-scope .layout {
 	position: relative;
