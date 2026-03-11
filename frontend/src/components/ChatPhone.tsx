@@ -28,7 +28,7 @@ export function ChatPhone() {
 
 	useEffect(() => {
 		scrollToBottom();
-	}, [messages, scrollToBottom]);
+	}, [scrollToBottom]);
 
 	const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -42,16 +42,24 @@ export function ChatPhone() {
 
 		setMessages((prev) => [
 			...prev,
-			{ id: Date.now().toString(), text: `📄 ${selectedFile.name}`, sender: "user", timestamp: new Date() },
+			{
+				id: Date.now().toString(),
+				text: `📄 ${selectedFile.name}`,
+				sender: "user",
+				timestamp: new Date(),
+			},
 		]);
 		setIsTyping(true);
 		setSelectedFile(null);
 
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL || ""}/chat/message`, {
-				method: "POST",
-				body: formData,
-			});
+			const response = await fetch(
+				`${import.meta.env.VITE_BASE_URL || ""}/chat/message`,
+				{
+					method: "POST",
+					body: formData,
+				},
+			);
 			const data: RoastResponse = await response.json();
 			setIsTyping(false);
 			const roastChunks = data.roast.split(/\n\n+/);
@@ -60,7 +68,12 @@ export function ChatPhone() {
 					await new Promise((resolve) => setTimeout(resolve, 800));
 					setMessages((prev) => [
 						...prev,
-						{ id: Date.now().toString(), text: chunk.trim(), sender: "hr", timestamp: new Date() },
+						{
+							id: Date.now().toString(),
+							text: chunk.trim(),
+							sender: "hr",
+							timestamp: new Date(),
+						},
 					]);
 				}
 			}
@@ -68,13 +81,22 @@ export function ChatPhone() {
 			setIsTyping(false);
 			setMessages((prev) => [
 				...prev,
-				{ id: Date.now().toString(), text: "Oops, something went wrong. Try again?", sender: "hr", timestamp: new Date() },
+				{
+					id: Date.now().toString(),
+					text: "Oops, something went wrong. Try again?",
+					sender: "hr",
+					timestamp: new Date(),
+				},
 			]);
 		}
 	};
 
 	const formatTime = (date: Date) =>
-		date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+		date.toLocaleTimeString("en-US", {
+			hour: "numeric",
+			minute: "2-digit",
+			hour12: true,
+		});
 
 	return (
 		<>
@@ -346,17 +368,25 @@ export function ChatPhone() {
 					<div className="prop-monitor-base" />
 				</div>
 				<div className="prop-papers">
-					<div className="prop-paper" /><div className="prop-paper" /><div className="prop-paper" />
+					<div className="prop-paper" />
+					<div className="prop-paper" />
+					<div className="prop-paper" />
 				</div>
 				<div className="prop-coffee">
-					<div className="prop-coffee-steam"><span /><span /><span /></div>
+					<div className="prop-coffee-steam">
+						<span />
+						<span />
+						<span />
+					</div>
 					<div className="prop-coffee-cup" />
 				</div>
 				<div className="prop-nameplate">
 					<div className="prop-nameplate-plate">SARAH CHEN · SR. RECRUITER</div>
 					<div className="prop-nameplate-base" />
 				</div>
-				<div className="watermark">SorryNotHired · Talent Acquisition Platform</div>
+				<div className="watermark">
+					SorryNotHired · Talent Acquisition Platform
+				</div>
 
 				<div className="layout">
 					{/* LEFT */}
@@ -365,15 +395,29 @@ export function ChatPhone() {
 							<div className="hr-id-card-logo">Acme Corp HR</div>
 							<div className="hr-id-card-avatar">S</div>
 							<div className="hr-id-card-name">Sarah Chen</div>
-							<div className="hr-id-card-title"><span className="hr-status-dot" />Senior Recruiter</div>
+							<div className="hr-id-card-title">
+								<span className="hr-status-dot" />
+								Senior Recruiter
+							</div>
 							<div className="hr-divider" />
-							<div className="hr-stat"><span className="hr-stat-label">CVs reviewed</span><span className="hr-stat-val">1,847</span></div>
-							<div className="hr-stat"><span className="hr-stat-label">Hired</span><span className="hr-stat-val">12</span></div>
-							<div className="hr-stat"><span className="hr-stat-label">Response time</span><span className="hr-stat-val">~3 weeks</span></div>
+							<div className="hr-stat">
+								<span className="hr-stat-label">CVs reviewed</span>
+								<span className="hr-stat-val">1,847</span>
+							</div>
+							<div className="hr-stat">
+								<span className="hr-stat-label">Hired</span>
+								<span className="hr-stat-val">12</span>
+							</div>
+							<div className="hr-stat">
+								<span className="hr-stat-label">Response time</span>
+								<span className="hr-stat-val">~3 weeks</span>
+							</div>
 						</div>
 						<div className="hr-mood">
 							<div className="hr-mood-label">Current patience level</div>
-							<div className="hr-mood-track"><div className="hr-mood-fill" /></div>
+							<div className="hr-mood-track">
+								<div className="hr-mood-fill" />
+							</div>
 							<div className="hr-mood-caption">Dangerously low</div>
 						</div>
 					</div>
@@ -385,24 +429,74 @@ export function ChatPhone() {
 							<div className="phone-notch" />
 							<div className="phone-statusbar">
 								<span>9:41</span>
-								<div style={{display:'flex',alignItems:'center',gap:'5px'}}>
-									<svg width="13" height="10" viewBox="0 0 24 16" fill="currentColor"><path d="M12 0C7.31 0 3.07 1.86 0 4.88L2.12 7C4.6 4.55 7.98 3 12 3s7.4 1.55 9.88 4L24 4.88C20.93 1.86 16.69 0 12 0z"/><path d="M12 6c-3.42 0-6.5 1.39-8.74 3.63L5.4 11.75C7.09 10.04 9.42 9 12 9s4.91 1.04 6.6 2.75l2.14-2.12C18.5 7.39 15.42 6 12 6z"/><path d="M12 12c-1.73 0-3.28.7-4.42 1.84L12 18l4.42-4.16C15.28 12.7 13.73 12 12 12z"/></svg>
+								<div
+									style={{ display: "flex", alignItems: "center", gap: "5px" }}
+								>
+									<svg
+										width="13"
+										height="10"
+										viewBox="0 0 24 16"
+										fill="currentColor"
+										aria-hidden="true"
+									>
+										<path d="M12 0C7.31 0 3.07 1.86 0 4.88L2.12 7C4.6 4.55 7.98 3 12 3s7.4 1.55 9.88 4L24 4.88C20.93 1.86 16.69 0 12 0z" />
+										<path d="M12 6c-3.42 0-6.5 1.39-8.74 3.63L5.4 11.75C7.09 10.04 9.42 9 12 9s4.91 1.04 6.6 2.75l2.14-2.12C18.5 7.39 15.42 6 12 6z" />
+										<path d="M12 12c-1.73 0-3.28.7-4.42 1.84L12 18l4.42-4.16C15.28 12.7 13.73 12 12 12z" />
+									</svg>
 									<div className="phone-battery" />
 								</div>
 							</div>
 
 							<div className="phone-inner">
 								<div className="chat-header">
-									<button type="button" className="chat-header-back" aria-label="Back">
-										<svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
+									<button
+										type="button"
+										className="chat-header-back"
+										aria-label="Back"
+									>
+										<svg
+											width="17"
+											height="17"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+											aria-hidden="true"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M15 19l-7-7 7-7"
+											/>
+										</svg>
 									</button>
-									<div className="chat-header-avatar">S<div className="chat-header-online" /></div>
+									<div className="chat-header-avatar">
+										S<div className="chat-header-online" />
+									</div>
 									<div className="chat-header-info">
 										<div className="chat-header-name">Sarah from HR</div>
 										<div className="chat-header-sub">Reviewing now</div>
 									</div>
-									<button type="button" className="chat-header-call" aria-label="Call">
-										<svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+									<button
+										type="button"
+										className="chat-header-call"
+										aria-label="Call"
+									>
+										<svg
+											width="17"
+											height="17"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+											aria-hidden="true"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+											/>
+										</svg>
 									</button>
 								</div>
 
@@ -413,14 +507,18 @@ export function ChatPhone() {
 											<div key={msg.id} className={`bubble-row ${msg.sender}`}>
 												<div className={`bubble ${msg.sender}`}>
 													{msg.text}
-													<span className="bubble-time">{formatTime(msg.timestamp)}</span>
+													<span className="bubble-time">
+														{formatTime(msg.timestamp)}
+													</span>
 												</div>
 											</div>
 										))}
 										{isTyping && (
 											<div className="bubble-row hr">
 												<div className="typing-bubble">
-													<div className="typing-dot" /><div className="typing-dot" /><div className="typing-dot" />
+													<div className="typing-dot" />
+													<div className="typing-dot" />
+													<div className="typing-dot" />
 												</div>
 											</div>
 										)}
@@ -430,23 +528,107 @@ export function ChatPhone() {
 
 								<div className="chat-input-area">
 									<div className="chat-input-row">
-										<button type="button" className="chat-attach-btn" onClick={() => fileInputRef.current?.click()} aria-label="Attach">
-											<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+										<button
+											type="button"
+											className="chat-attach-btn"
+											onClick={() => fileInputRef.current?.click()}
+											aria-label="Attach"
+										>
+											<svg
+												width="15"
+												height="15"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+												aria-hidden="true"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth={2}
+													d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+												/>
+											</svg>
 										</button>
-										<input ref={fileInputRef} type="file" accept=".pdf,application/pdf" onChange={handleFileSelect} style={{display:'none'}} />
+										<input
+											ref={fileInputRef}
+											type="file"
+											accept=".pdf,application/pdf"
+											onChange={handleFileSelect}
+											style={{ display: "none" }}
+										/>
 										<div className="chat-input-field">
 											{selectedFile ? (
 												<div className="chat-file-row">
-													<svg width="12" height="12" fill="none" stroke="var(--accent)" viewBox="0 0 24 24" style={{flexShrink:0}}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-													<span className="chat-file-name">{selectedFile.name}</span>
-													<button type="button" className="chat-file-clear" onClick={() => setSelectedFile(null)}><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
+													<svg
+														width="12"
+														height="12"
+														fill="none"
+														stroke="var(--accent)"
+														viewBox="0 0 24 24"
+														style={{ flexShrink: 0 }}
+														aria-hidden="true"
+													>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															strokeWidth={2}
+															d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+														/>
+													</svg>
+													<span className="chat-file-name">
+														{selectedFile.name}
+													</span>
+													<button
+														type="button"
+														className="chat-file-clear"
+														onClick={() => setSelectedFile(null)}
+													>
+														<svg
+															width="11"
+															height="11"
+															fill="none"
+															stroke="currentColor"
+															viewBox="0 0 24 24"
+															aria-hidden="true"
+														>
+															<path
+																strokeLinecap="round"
+																strokeLinejoin="round"
+																strokeWidth={2}
+																d="M6 18L18 6M6 6l12 12"
+															/>
+														</svg>
+													</button>
 												</div>
 											) : (
-												<span className="chat-placeholder">Attach your CV to proceed...</span>
+												<span className="chat-placeholder">
+													Attach your CV to proceed...
+												</span>
 											)}
 										</div>
-										<button type="button" className="chat-send-btn" onClick={handleSubmit} disabled={!selectedFile || isTyping} aria-label="Send">
-											<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7"/></svg>
+										<button
+											type="button"
+											className="chat-send-btn"
+											onClick={handleSubmit}
+											disabled={!selectedFile || isTyping}
+											aria-label="Send"
+										>
+											<svg
+												width="15"
+												height="15"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+												aria-hidden="true"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth={2}
+													d="M5 12h14M12 5l7 7-7 7"
+												/>
+											</svg>
 										</button>
 									</div>
 								</div>
@@ -464,15 +646,33 @@ export function ChatPhone() {
 						</div>
 						<div className="reject-meter">
 							<div className="reject-label">Rejection probability</div>
-							<div className="reject-track"><div className="reject-fill" /></div>
-							<div className="reject-labels"><span>Hired</span><span>82%</span><span>Rejected</span></div>
+							<div className="reject-track">
+								<div className="reject-fill" />
+							</div>
+							<div className="reject-labels">
+								<span>Hired</span>
+								<span>82%</span>
+								<span>Rejected</span>
+							</div>
 						</div>
 						<div className="activity">
 							<div className="activity-label">Recent activity</div>
-							<div className="activity-item"><div className="a-dot r" /><span>John D. — rejected after 2s</span></div>
-							<div className="activity-item"><div className="a-dot r" /><span>Maria K. — "not a culture fit"</span></div>
-							<div className="activity-item"><div className="a-dot g" /><span>Alex T. — advanced to ghost</span></div>
-							<div className="activity-item"><div className="a-dot r" /><span>Sam R. — overqualified</span></div>
+							<div className="activity-item">
+								<div className="a-dot r" />
+								<span>John D. — rejected after 2s</span>
+							</div>
+							<div className="activity-item">
+								<div className="a-dot r" />
+								<span>Maria K. — "not a culture fit"</span>
+							</div>
+							<div className="activity-item">
+								<div className="a-dot g" />
+								<span>Alex T. — advanced to ghost</span>
+							</div>
+							<div className="activity-item">
+								<div className="a-dot r" />
+								<span>Sam R. — overqualified</span>
+							</div>
 						</div>
 					</div>
 				</div>
