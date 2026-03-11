@@ -48,7 +48,7 @@ export function ChatPhone() {
 			...prev,
 			{
 				id: Date.now().toString(),
-				text: `Uploaded ${selectedFile.name}`,
+				text: `📄 ${selectedFile.name}`,
 				sender: "user",
 				timestamp: new Date(),
 			},
@@ -108,9 +108,25 @@ export function ChatPhone() {
 	};
 
 	return (
-		<div className="min-h-screen bg-linear-to-br from-[--bg-base] via-[--foam] to-[--sand] flex items-center justify-center p-4">
+		<div className="min-h-screen bg-linear-to-br from-[--bg-base] via-[--foam] to-[--sand] flex items-center justify-center p-4 relative overflow-hidden">
+			{/* Animated Background Blobs */}
+			<div className="absolute inset-0 overflow-hidden">
+				<div className="absolute -top-40 -right-40 w-80 h-80 bg-[--lagoon]/20 rounded-full blur-3xl animate-pulse" />
+				<div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[--palm]/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+				<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-200/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }} />
+			</div>
+
+			{/* Background Pattern - Subtle dot grid */}
+			<div
+				className="absolute inset-0"
+				style={{
+					backgroundImage: `radial-gradient(circle at 1px 1px, rgba(23, 58, 64, 0.15) 1px, transparent 0)`,
+					backgroundSize: "24px 24px"
+				}}
+			/>
+
 			{/* Phone Frame */}
-			<div className="relative w-full max-w-105 aspect-9/19.5 bg-[--foam] rounded-[3rem] shadow-2xl overflow-hidden border-8 border-[--sea-ink]">
+			<div className="relative z-10 w-full max-w-105 aspect-9/19.5 bg-[--foam] rounded-[3rem] shadow-2xl overflow-hidden border-8 border-[--sea-ink]">
 				{/* Notch */}
 				<div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-[--sea-ink] rounded-b-2xl z-20" />
 
@@ -154,8 +170,8 @@ export function ChatPhone() {
 							</svg>
 						</button>
 						<div className="relative">
-							<div className="w-10 h-10 rounded-full bg-linear-to-br from-[--lagoon] to-[--palm] flex items-center justify-center text-white font-bold text-sm shadow-lg">
-								HR
+							<div className="w-10 h-10 rounded-full bg-linear-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+								S
 							</div>
 							<div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-[--header-bg] rounded-full" />
 						</div>
@@ -193,9 +209,9 @@ export function ChatPhone() {
 								className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
 							>
 								<div
-									className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm ${
+									className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-md ${
 										message.sender === "user"
-											? "bg-linear-to-br from-[--lagoon] to-[--lagoon-deep] text-white rounded-br-sm"
+											? "bg-linear-to-br from-pink-500 to-pink-600 text-white rounded-br-sm"
 											: "bg-[--surface] text-[--sea-ink] rounded-bl-sm border border-[--line]"
 									}`}
 								>
@@ -205,7 +221,7 @@ export function ChatPhone() {
 									<p
 										className={`text-[10px] mt-1 ${
 											message.sender === "user"
-												? "text-white/70"
+												? "text-white/80"
 												: "text-[--sea-ink-soft]"
 										}`}
 									>
@@ -246,7 +262,8 @@ export function ChatPhone() {
 							<button
 								type="button"
 								onClick={() => fileInputRef.current?.click()}
-								className="shrink-0 w-10 h-10 rounded-full bg-[--surface] border border-[--line] flex items-center justify-center text-[--lagoon-deep] hover:bg-[--link-bg-hover] hover:scale-105 transition-all"
+								disabled={isTyping}
+								className="shrink-0 w-10 h-10 rounded-full bg-[--surface] border border-[--line] flex items-center justify-center text-[--lagoon-deep] hover:bg-[--link-bg-hover] hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
 								aria-label="Attach file"
 							>
 								<svg
@@ -268,7 +285,7 @@ export function ChatPhone() {
 							<input
 								ref={fileInputRef}
 								type="file"
-								accept=".pdf,application/pdf"
+								accept="application/pdf,.pdf"
 								onChange={handleFileSelect}
 								className="hidden"
 							/>
@@ -294,7 +311,8 @@ export function ChatPhone() {
 										<button
 											type="button"
 											onClick={() => setSelectedFile(null)}
-											className="text-[--sea-ink-soft] hover:text-[--sea-ink]"
+											disabled={isTyping}
+											className="text-[--sea-ink-soft] hover:text-[--sea-ink] disabled:opacity-50"
 											aria-label="Remove file"
 										>
 											<svg
@@ -315,7 +333,7 @@ export function ChatPhone() {
 									</div>
 								) : (
 									<span className="text-[--sea-ink-soft] text-sm">
-										Upload your CV...
+										Upload CV (PDF)...
 									</span>
 								)}
 							</div>
@@ -323,7 +341,7 @@ export function ChatPhone() {
 							<button type="button"
 								onClick={handleSubmit}
 								disabled={!selectedFile || isTyping}
-								className="shrink-0 w-10 h-10 rounded-full bg-linear-to-br from-[--lagoon] to-[--lagoon-deep] flex items-center justify-center text-white shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
+								className="shrink-0 w-10 h-10 rounded-full bg-linear-to-br from-pink-500 to-pink-600 flex items-center justify-center text-white shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
 								aria-label="Send message"
 							>
 								<svg
@@ -350,6 +368,9 @@ export function ChatPhone() {
 
 				{/* Glossy Reflection */}
 				<div className="absolute inset-0 bg-linear-to-br from-white/5 via-transparent to-transparent pointer-events-none z-10" />
+
+				{/* Subtle Shimmer Effect */}
+				<div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent" style={{ animation: 'shimmer 3s infinite' }} />
 			</div>
 		</div>
 	);
