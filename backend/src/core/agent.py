@@ -7,7 +7,7 @@ from api.chat.models import RoastOutput
 from config import get_env_vars
 
 
-def create_agent() -> Agent:
+def create_agent() -> Agent[None, RoastOutput]:
 
     env = get_env_vars()
 
