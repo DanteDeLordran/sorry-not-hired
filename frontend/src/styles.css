@@ -95,208 +95,13 @@
 	);
 }
 
-/* Props */
-.chatphone-scope .prop-monitor {
-	position: absolute;
-	left: 4%;
-	bottom: 29%;
-	opacity: 0.15;
-	pointer-events: none;
-}
-
-.chatphone-scope .prop-monitor-screen {
-	width: 170px;
-	height: 105px;
-	background: linear-gradient(
-		135deg,
-		var(--slate-800),
-		var(--slate-700)
-	);
-	border: 2px solid var(--slate-600);
-	border-radius: 4px;
-	overflow: hidden;
-}
-
-.chatphone-scope .prop-monitor-screen::after {
-	content: "";
-	display: block;
-	width: 100%;
-	height: 100%;
-	background: repeating-linear-gradient(
-		0deg,
-		transparent,
-		transparent 6px,
-		rgba(100, 160, 220, 0.12) 6px,
-		rgba(100, 160, 220, 0.12) 7px
-	);
-}
-
-.chatphone-scope .prop-monitor-stand {
-	width: 22px;
-	height: 18px;
-	background: var(--slate-700);
-	margin: 0 auto;
-	clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
-}
-
-.chatphone-scope .prop-monitor-base {
-	width: 65px;
-	height: 5px;
-	background: var(--slate-700);
-	margin: 0 auto;
-	border-radius: 2px;
-}
-
-.chatphone-scope .prop-papers {
-	position: absolute;
-	left: 7%;
-	bottom: 25%;
-	opacity: 0.12;
-	pointer-events: none;
-}
-
-.chatphone-scope .prop-paper {
-	width: 48px;
-	height: 62px;
-	background: var(--slate-200);
-	border-radius: 1px;
-	position: absolute;
-	overflow: hidden;
-}
-
-.chatphone-scope .prop-paper::after {
-	content: "";
-	position: absolute;
-	inset: 5px;
-	background: repeating-linear-gradient(
-		0deg,
-		transparent,
-		transparent 5px,
-		rgba(0, 0, 0, 0.12) 5px,
-		rgba(0, 0, 0, 0.12) 6px
-	);
-}
-
-.chatphone-scope .prop-paper:nth-child(1) {
-	transform: rotate(-7deg);
-}
-
-.chatphone-scope .prop-paper:nth-child(2) {
-	transform: rotate(4deg);
-	left: 8px;
-	top: 3px;
-}
-
-.chatphone-scope .prop-paper:nth-child(3) {
-	transform: rotate(11deg);
-	left: 13px;
-	top: 1px;
-}
-
-.chatphone-scope .prop-coffee {
-	position: absolute;
-	right: 6%;
-	bottom: 27%;
-	opacity: 0.18;
-	pointer-events: none;
-}
-
-.chatphone-scope .prop-coffee-steam {
-	display: flex;
-	gap: 5px;
-	justify-content: center;
-	margin-bottom: 3px;
-}
-
-.chatphone-scope .prop-coffee-steam span {
-	display: block;
-	width: 2px;
-	height: 10px;
-	background: rgba(200, 169, 110, 0.5);
-	border-radius: 1px;
-	animation: steam 2s ease-in-out infinite;
-}
-
-.chatphone-scope .prop-coffee-steam span:nth-child(2) {
-	animation-delay: 0.3s;
-	height: 14px;
-}
-
-.chatphone-scope .prop-coffee-steam span:nth-child(3) {
-	animation-delay: 0.6s;
-}
-
-@keyframes steam {
-	0%,
-	100% {
-		transform: translateY(0) scaleX(1);
-		opacity: 0.4;
-	}
-	50% {
-		transform: translateY(-6px) scaleX(1.3);
-		opacity: 0.7;
-	}
-}
-
-.chatphone-scope .prop-coffee-cup {
-	width: 30px;
-	height: 35px;
-	background: linear-gradient(
-		180deg,
-		var(--slate-600),
-		var(--slate-700)
-	);
-	border-radius: 2px 2px 5px 5px;
-	border: 1px solid var(--slate-500);
-	position: relative;
-}
-
-.chatphone-scope .prop-coffee-cup::after {
-	content: "";
-	position: absolute;
-	top: 8px;
-	right: -9px;
-	width: 9px;
-	height: 13px;
-	border: 2px solid var(--slate-500);
-	border-left: none;
-	border-radius: 0 5px 5px 0;
-}
-
-.chatphone-scope .prop-nameplate {
-	position: absolute;
-	right: 7%;
-	bottom: 25.5%;
-	opacity: 0.22;
-	pointer-events: none;
-}
-
-.chatphone-scope .prop-nameplate-plate {
-	background: linear-gradient(135deg, #b8860b, #8b6914);
-	color: rgba(255, 255, 255, 0.9);
-	font-family: var(--font-display);
-	font-size: 7px;
-	letter-spacing: 0.1em;
-	padding: 4px 10px;
-	border-radius: 2px 2px 0 0;
-	white-space: nowrap;
-	text-align: center;
-}
-
-.chatphone-scope .prop-nameplate-base {
-	width: 100%;
-	height: 5px;
-	background: linear-gradient(135deg, #8b6914, #6b5010);
-	border-radius: 0 0 2px 2px;
-}
-
 .chatphone-scope .watermark {
 	position: absolute;
 	bottom: 0.75rem;
 	left: 50%;
 	transform: translateX(-50%);
 	font-family: var(--font-display);
-	font-size: 11px;
+	font-size: 13px;
 	letter-spacing: 0.3em;
 	text-transform: uppercase;
 	color: rgba(200, 169, 110, 0.12);
@@ -316,7 +121,7 @@
 	background: rgba(200, 169, 110, 0.06);
 	border: 1px solid rgba(200, 169, 110, 0.12);
 	border-radius: 16px;
-	font-size: 12px;
+	font-size: 14px;
 	color: rgba(200, 169, 110, 0.55);
 	text-decoration: none;
 	white-space: nowrap;
@@ -384,7 +189,7 @@
 
 .chatphone-scope .hr-id-card-logo {
 	font-family: var(--font-display);
-	font-size: 11px;
+	font-size: 13px;
 	letter-spacing: 0.2em;
 	text-transform: uppercase;
 	color: var(--accent);
@@ -400,7 +205,7 @@
 	align-items: center;
 	justify-content: center;
 	font-family: var(--font-display);
-	font-size: 22px;
+	font-size: 25px;
 	color: white;
 	font-weight: 600;
 	margin-bottom: 0.8rem;
@@ -409,13 +214,13 @@
 
 .chatphone-scope .hr-id-card-name {
 	font-family: var(--font-display);
-	font-size: 16px;
+	font-size: 19px;
 	color: var(--white);
 	margin-bottom: 3px;
 }
 
 .chatphone-scope .hr-id-card-title {
-	font-size: 11px;
+	font-size: 13px;
 	color: var(--slate-400);
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
@@ -460,14 +265,14 @@
 }
 
 .chatphone-scope .hr-stat-label {
-	font-size: 11px;
+	font-size: 13px;
 	color: var(--slate-400);
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
 }
 
 .chatphone-scope .hr-stat-val {
-	font-size: 12px;
+	font-size: 14px;
 	color: var(--accent-light);
 	font-weight: 500;
 }
@@ -480,7 +285,7 @@
 }
 
 .chatphone-scope .hr-mood-label {
-	font-size: 11px;
+	font-size: 13px;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
 	color: var(--slate-400);
@@ -503,7 +308,7 @@
 }
 
 .chatphone-scope .hr-mood-caption {
-	font-size: 11px;
+	font-size: 13px;
 	color: var(--accent);
 	text-align: right;
 }
@@ -598,7 +403,7 @@
 	padding: 0 22px;
 	z-index: 10;
 	font-family: var(--font-body);
-	font-size: 11px;
+	font-size: 13px;
 	font-weight: 500;
 	color: rgba(255, 255, 255, 0.5);
 }
@@ -670,7 +475,7 @@
 	align-items: center;
 	justify-content: center;
 	font-family: var(--font-display);
-	font-size: 14px;
+	font-size: 17px;
 	color: white;
 	font-weight: 600;
 	flex-shrink: 0;
@@ -696,7 +501,7 @@
 
 .chatphone-scope .chat-header-name {
 	font-family: var(--font-display);
-	font-size: 13px;
+	font-size: 16px;
 	color: var(--white);
 	font-weight: 500;
 	white-space: nowrap;
@@ -705,7 +510,7 @@
 }
 
 .chatphone-scope .chat-header-sub {
-	font-size: 10px;
+	font-size: 12px;
 	color: var(--accent);
 	letter-spacing: 0.07em;
 	text-transform: uppercase;
@@ -764,7 +569,7 @@
 
 .chatphone-scope .date-chip {
 	text-align: center;
-	font-size: 10px;
+	font-size: 12px;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
 	color: var(--slate-400);
@@ -805,7 +610,7 @@
 .chatphone-scope .bubble {
 	max-width: 78%;
 	padding: 8px 11px;
-	font-size: 12.5px;
+	font-size: 15px;
 	line-height: 1.5;
 	color: var(--white);
 	white-space: pre-wrap;
@@ -827,7 +632,7 @@
 }
 
 .chatphone-scope .bubble-time {
-	font-size: 10px;
+	font-size: 12px;
 	margin-top: 3px;
 	display: block;
 	letter-spacing: 0.04em;
@@ -922,7 +727,7 @@
 .chatphone-scope .chat-placeholder {
 	color: rgba(255, 255, 255, 0.18);
 	font-style: italic;
-	font-size: 12px;
+	font-size: 14px;
 }
 
 .chatphone-scope .chat-file-row {
@@ -937,7 +742,7 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	font-size: 11px;
+	font-size: 13px;
 	color: var(--accent-light);
 }
 
@@ -1018,7 +823,7 @@
 }
 
 .chatphone-scope .stat-label {
-	font-size: 11px;
+	font-size: 13px;
 	letter-spacing: 0.13em;
 	text-transform: uppercase;
 	color: var(--slate-400);
@@ -1027,7 +832,7 @@
 
 .chatphone-scope .stat-value {
 	font-family: var(--font-display);
-	font-size: 26px;
+	font-size: 29px;
 	color: var(--white);
 	font-weight: 400;
 	line-height: 1;
@@ -1035,7 +840,7 @@
 }
 
 .chatphone-scope .stat-sub {
-	font-size: 11px;
+	font-size: 13px;
 	color: var(--accent);
 }
 
@@ -1047,7 +852,7 @@
 }
 
 .chatphone-scope .reject-label {
-	font-size: 11px;
+	font-size: 13px;
 	letter-spacing: 0.13em;
 	text-transform: uppercase;
 	color: var(--slate-400);
@@ -1077,7 +882,7 @@
 .chatphone-scope .reject-labels {
 	display: flex;
 	justify-content: space-between;
-	font-size: 9px;
+	font-size: 11px;
 	color: var(--slate-400);
 }
 
@@ -1089,7 +894,7 @@
 }
 
 .chatphone-scope .activity-label {
-	font-size: 11px;
+	font-size: 13px;
 	letter-spacing: 0.13em;
 	text-transform: uppercase;
 	color: var(--slate-400);
@@ -1101,7 +906,7 @@
 	align-items: flex-start;
 	gap: 7px;
 	margin-bottom: 8px;
-	font-size: 11px;
+	font-size: 13px;
 	color: var(--slate-300);
 	line-height: 1.45;
 }
@@ -1129,71 +934,3 @@
 /* ===========================
    End ChatPhone Styles
    =========================== */
-
-:root {
-  --sea-ink: #173a40;
-  --sea-ink-soft: #416166;
-  --lagoon: #4fb8b2;
-  --lagoon-deep: #328f97;
-  --palm: #2f6a4a;
-  --sand: #e7f0e8;
-  --foam: #f3faf5;
-  --surface: rgba(255, 255, 255, 0.74);
-  --surface-strong: rgba(255, 255, 255, 0.9);
-  --line: rgba(23, 58, 64, 0.14);
-  --inset-glint: rgba(255, 255, 255, 0.82);
-  --kicker: rgba(47, 106, 74, 0.9);
-  --bg-base: #e7f3ec;
-  --header-bg: rgba(251, 255, 248, 0.84);
-  --chip-bg: rgba(255, 255, 255, 0.8);
-  --chip-line: rgba(47, 106, 74, 0.18);
-  --link-bg-hover: rgba(255, 255, 255, 0.9);
-  --hero-a: rgba(79, 184, 178, 0.36);
-  --hero-b: rgba(47, 106, 74, 0.2);
-}
-
-:root[data-theme="dark"] {
-  --sea-ink: #d7ece8;
-  --sea-ink-soft: #afcdc8;
-  --lagoon: #60d7cf;
-  --lagoon-deep: #8de5db;
-  --palm: #6ec89a;
-  --sand: #0f1a1e;
-  --foam: #101d22;
-  --surface: rgba(16, 30, 34, 0.8);
-  --surface-strong: rgba(15, 27, 31, 0.92);
-  --line: rgba(141, 229, 219, 0.18);
-  --inset-glint: rgba(194, 247, 238, 0.14);
-  --kicker: #b8efe5;
-  --bg-base: #0a1418;
-  --header-bg: rgba(10, 20, 24, 0.8);
-  --chip-bg: rgba(13, 28, 32, 0.9);
-  --chip-line: rgba(141, 229, 219, 0.24);
-  --link-bg-hover: rgba(24, 44, 49, 0.8);
-  --hero-a: rgba(96, 215, 207, 0.18);
-  --hero-b: rgba(110, 200, 154, 0.12);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --sea-ink: #d7ece8;
-    --sea-ink-soft: #afcdc8;
-    --lagoon: #60d7cf;
-    --lagoon-deep: #8de5db;
-    --palm: #6ec89a;
-    --sand: #0f1a1e;
-    --foam: #101d22;
-    --surface: rgba(16, 30, 34, 0.8);
-    --surface-strong: rgba(15, 27, 31, 0.92);
-    --line: rgba(141, 229, 219, 0.18);
-    --inset-glint: rgba(194, 247, 238, 0.14);
-    --kicker: #b8efe5;
-    --bg-base: #0a1418;
-    --header-bg: rgba(10, 20, 24, 0.8);
-    --chip-bg: rgba(13, 28, 32, 0.9);
-    --chip-line: rgba(141, 229, 219, 0.24);
-    --link-bg-hover: rgba(24, 44, 49, 0.8);
-    --hero-a: rgba(96, 215, 207, 0.18);
-    --hero-b: rgba(110, 200, 154, 0.12);
-  }
-}

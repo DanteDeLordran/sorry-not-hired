@@ -1,9 +1,10 @@
+from typing import Annotated
 from fastapi import APIRouter, File, UploadFile
 from fastapi.params import Depends
 from pydantic_ai.agent import Agent
 
-from api.chat.models import RoastResponse
-from core.agent import create_agent
+from api.chat.models import RoastResponse, RoastOutput
+from dependencies import get_agent
 
 router = APIRouter(prefix="/chat")
 
@@ -15,9 +16,14 @@ router = APIRouter(prefix="/chat")
     description="Upload a PDF CV and get a brutal roast in return",
 )
 async def send_message(
-    file: UploadFile = File(..., description="PDF file containing the CV to roast"),
-    agent: Agent = Depends(create_agent),
-) -> RoastResponse:
+    agent: Annotated[Agent[None, RoastOutput], Depends(get_agent)],
+    file: Annotated[
+        UploadFile, File(description="PDF file containing the CV to roast")
+    ],
+) -> RoastResponse | dict[str, str]:
+
+    if not file or not file.filename:
+        return {"error": "No file"}
 
     if file.content_type != "application/pdf" and not file.filename.lower().endswith(
         ".pdf"
