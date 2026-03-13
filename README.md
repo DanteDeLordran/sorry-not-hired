@@ -198,26 +198,6 @@ Response: 200 OK
 
 ---
 
-## 🧪 Testing
-
-### Backend
-
-```bash
-cd backend
-
-# Run tests
-pytest
-
-# With coverage
-pytest --cov=src --cov-report=html
-
-# Type checking
-mypy src/
-
-# Linting
-ruff check src/
-```
-
 ### Frontend
 
 ```bash
@@ -279,37 +259,6 @@ cv-roaster/
 └── .env.example           # Environment template
 ```
 
-### Code Quality
-
-This project uses:
-- **Backend:** `ruff` (linting), `mypy` (types)
-- **Frontend:** `biome` (linting + formatting)
-
-Pre-commit hooks are recommended (see `ROADMAP.md` Phase 5).
-
----
-
-## 📈 Roadmap
-
-See [ROADMAP.md](./ROADMAP.md) for the development plan.
-
-**Current Phase:** Core Functionality ✅
-
-**Implemented:**
-- [x] Backend API with FastAPI
-- [x] CV upload endpoint with PDF validation
-- [x] Text extraction using pymupdf4llm
-- [x] AI agent with Pydantic AI (structured JSON output)
-- [x] Health endpoints (liveness, readiness)
-- [x] Frontend chat-style UI
-- [x] File upload with streaming response
-
-**Next Milestones:**
-- [ ] Enhanced agent prompts and roast quality
-- [ ] Response streaming improvements
-- [ ] Additional UI polish and animations
-- [ ] Comprehensive testing
-
 ---
 
 ## 🔒 Security Considerations
@@ -333,37 +282,3 @@ See [ROADMAP.md](./ROADMAP.md) for the development plan.
 4. Implement file scanning for malware
 5. Set up monitoring and abuse detection
 6. Consider temporary file cleanup for large deployments
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Please:
-
-1. Check the [ROADMAP.md](./ROADMAP.md) for planned features
-2. Create an issue before starting work
-3. Follow existing code style
-4. Add tests for new functionality
-
----
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
-
----
-
-## ⚠️ Disclaimer
-
-This project is for entertainment purposes only. The AI-generated roasts are meant to be humorous and should not be taken as professional career advice. No human reviewers were harmed in the making of this application.
-
----
-
-## 📞 Support
-
-- **Issues:** [GitHub Issues](https://github.com/your-username/cv-roaster/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/your-username/cv-roaster/discussions)
-
----
-
-*Built with ☕ and questionable AI decisions*
