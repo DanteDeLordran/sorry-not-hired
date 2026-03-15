@@ -1,4 +1,4 @@
-# CV Roaster 🤖📄
+# SorryNotHired 🤖📄
 
 > AI-powered CV roast service. Upload your resume and get brutally honest feedback.
 
@@ -8,14 +8,14 @@
 
 ## 🎯 What It Does
 
-CV Roaster uses AI to analyze your CV and deliver a no-holds-barred critique. No corporate speak, no sugar-coating—just honest (and entertaining) feedback about your resume.
+SorryNotHired uses AI to analyze your CV and deliver a no-holds-barred critique. No corporate speak, no sugar-coating—just honest (and entertaining) feedback about your resume, disguised as an HR recruiter venting to a coworker.
 
 **Features:**
-- 📤 PDF upload with instant text extraction
-- 🤖 AI-powered roast generation
-- ⚡ Real-time processing status
-- 🎨 Modern, responsive UI
-- 🔒 Auto-delete after 24 hours
+- 📤 PDF upload with instant text extraction (pymupdf4llm)
+- 🤖 AI-powered roast generation (Pydantic AI + OpenAI-compatible models)
+- 💬 Chat-style UI with typing indicators and message streaming
+- 🎨 Modern, responsive phone-themed UI
+- 🔒 Local LLM support (LM Studio, Ollama) or cloud providers
 
 ---
 
@@ -27,12 +27,6 @@ CV Roaster uses AI to analyze your CV and deliver a no-holds-barred critique. No
 │  (React +   │     │   (FastAPI)  │     │  (OpenAI-   │
 │  TanStack)  │◀────│  + Pydantic  │     │  compatible)│
 └─────────────┘     └──────────────┘     └─────────────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   Redis +    │
-                    │  PostgreSQL  │
-                    └──────────────┘
 ```
 
 ### Tech Stack
@@ -40,10 +34,10 @@ CV Roaster uses AI to analyze your CV and deliver a no-holds-barred critique. No
 | Layer | Technology |
 |-------|------------|
 | **Frontend** | React 19, TanStack Router, Tailwind CSS v4, Bun |
-| **Backend** | Python 3.14, FastAPI, Pydantic AI, uv |
-| **LLM** | OpenAI-compatible API (self-hosted or cloud) |
-| **Infrastructure** | Docker, nginx, Redis, PostgreSQL |
-| **Tooling** | Biome (lint/format), Vitest (testing) |
+| **Backend** | Python 3.13+, FastAPI, Pydantic AI, pymupdf4llm, uv |
+| **LLM** | OpenAI-compatible API (LM Studio, Ollama, vLLM, OpenAI) |
+| **Infrastructure** | Docker, Docker Compose |
+| **Tooling** | Biome (lint/format), Vitest (testing), Ruff (backend lint) |
 
 ---
 
@@ -76,8 +70,9 @@ uv sync
 cp ../.env.example .env
 
 # Edit .env with your LLM API credentials
-# OPENAI_API_KEY=your-key-here
-# OPENAI_BASE_URL=http://localhost:1234/v1  # or your preferred provider
+# API_KEY=your-key-here
+# BASE_URL=http://localhost:1234/v1  # or your preferred provider
+# CHAT_MODEL=your-model-name
 
 # Run development server
 fastapi dev src/app.py
@@ -106,14 +101,15 @@ This project requires an OpenAI-compatible API. Options:
 | Provider | Setup |
 |----------|-------|
 | **LM Studio** (local) | Download models, run server on `http://localhost:1234` |
-| **OpenAI** | Get API key from [platform.openai.com](https://platform.openai.com) |
-| **Ollama** | Run `ollama serve` on `http://localhost:11434` |
+| **Ollama** (local) | Run `ollama serve` on `http://localhost:11434` |
 | **vLLM** | Self-hosted inference server |
+| **OpenAI** | Get API key from [platform.openai.com](https://platform.openai.com) |
 
 Configure in `.env`:
 ```bash
-OPENAI_API_KEY=your-api-key
-OPENAI_BASE_URL=http://localhost:1234/v1
+API_KEY=your-api-key
+BASE_URL=http://localhost:1234/v1
+CHAT_MODEL=your-model-name
 ```
 
 ---
@@ -142,8 +138,9 @@ Services available at:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `OPENAI_API_KEY` | Your LLM API key | `lm_studio` |
-| `OPENAI_BASE_URL` | LLM API base URL | `http://127.0.0.1:1234/v1` |
+| `API_KEY` | Your LLM API key | `qwen3.5-2b-uncensored...` |
+| `BASE_URL` | LLM API base URL | `http://127.0.0.1:1234/v1` |
+| `CHAT_MODEL` | Model name to use | `lm_studio` |
 | `DOCKER_IMAGE_BACKEND` | Backend image name | `cv-roaster-backend` |
 | `DOCKER_IMAGE_FRONTEND` | Frontend image name | `cv-roaster-frontend` |
 | `TAG` | Image tag | `latest` |
@@ -167,55 +164,39 @@ Returns `200 OK` if the service is running.
 ```bash
 GET /api/v1/health/readiness
 ```
-Returns `200 OK` if ready to serve traffic, `503` otherwise.
+Returns `200 OK` if ready to serve traffic, `503` otherwise. Includes LM Studio connectivity check.
 
 ---
 
-### CV Endpoints (Planned)
+### CV Roast Endpoint
 
-#### Upload CV
+#### Upload CV and Get Roast
 ```bash
-POST /api/v1/cv/upload
+POST /api/v1/chat/message
 Content-Type: multipart/form-data
 
-Response: { "job_id": "uuid" }
+FormData:
+  file: <PDF file>
+
+Response: 200 OK
+{
+  "roast": "Your brutally honest feedback...",
+  "severity": "medium",
+  "filename": "resume.pdf"
+}
 ```
 
-#### Check Status
-```bash
-GET /api/v1/cv/{job_id}/status
+**Response Fields:**
+- `roast` (string): The AI-generated critique, formatted in paragraphs
+- `severity` (string): Roast intensity level - `light`, `medium`, or `harsh`
+- `filename` (string): Name of the uploaded PDF file
 
-Response: { "status": "pending|processing|completed|failed" }
-```
-
-#### Get Result
-```bash
-GET /api/v1/cv/{job_id}/result
-
-Response: { "roast": "Your CV is..." }
+**Error Response:**
+```json
+{ "error": "Not a PDF file" }
 ```
 
 ---
-
-## 🧪 Testing
-
-### Backend
-
-```bash
-cd backend
-
-# Run tests
-pytest
-
-# With coverage
-pytest --cov=src --cov-report=html
-
-# Type checking
-mypy src/
-
-# Linting
-ruff check src/
-```
 
 ### Frontend
 
@@ -242,18 +223,35 @@ bun run format
 cv-roaster/
 ├── backend/
 │   ├── src/
-│   │   ├── handlers/      # API route handlers
-│   │   ├── models/        # Pydantic schemas
-│   │   ├── services/      # Business logic
-│   │   ├── app.py         # FastAPI app factory
-│   │   └── main.py        # Entry point
+│   │   ├── api/
+│   │   │   ├── chat/          # CV roast endpoint
+│   │   │   │   ├── models.py  # Pydantic schemas
+│   │   │   │   └── router.py  # POST /chat/message
+│   │   │   ├── health/
+│   │   │   │   ├── models.py  # Health check schemas
+│   │   │   │   └── router.py  # GET /health/liveness, /readiness
+│   │   │   └── router.py      # API router
+│   │   ├── core/
+│   │   │   └── agent.py       # Pydantic AI agent setup
+│   │   ├── schemas/           # Shared Pydantic models
+│   │   ├── app.py             # FastAPI app factory
+│   │   ├── config.py          # Environment configuration
+│   │   ├── main.py            # Entry point
+│   │   └── middleware.py      # CORS setup
 │   ├── pyproject.toml
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── components/    # React components
-│   │   ├── routes/        # File-based routes
-│   │   └── main.tsx       # Entry point
+│   │   ├── components/
+│   │   │   └── ChatPhone.tsx  # Main chat UI component
+│   │   ├── models/
+│   │   │   └── roast.ts       # TypeScript types
+│   │   ├── routes/
+│   │   │   ├── __root.tsx     # Root layout
+│   │   │   └── index.tsx      # Home page
+│   │   ├── main.tsx           # Entry point
+│   │   ├── router.tsx         # Router configuration
+│   │   └── routeTree.gen.ts   # Auto-generated routes
 │   ├── package.json
 │   └── Dockerfile
 ├── compose.yml            # Docker Compose config
@@ -261,79 +259,26 @@ cv-roaster/
 └── .env.example           # Environment template
 ```
 
-### Code Quality
-
-This project uses:
-- **Backend:** `ruff` (linting), `black` (formatting), `mypy` (types)
-- **Frontend:** `biome` (linting + formatting)
-
-Pre-commit hooks are recommended (see `ROADMAP.md` Phase 5).
-
----
-
-## 📈 Roadmap
-
-See [ROADMAP.md](./ROADMAP.md) for the complete development plan.
-
-**Current Phase:** 1 - Core Functionality
-
-**Next Milestones:**
-1. CV upload endpoint with file validation
-2. Async processing with background tasks
-3. Frontend upload UI
-4. Structured logging
-
 ---
 
 ## 🔒 Security Considerations
 
 ### Current Implementation
-- ✅ File type validation (magic bytes)
-- ✅ File size limits (10MB max)
-- ✅ Auto-delete after 24 hours
-- ✅ Security headers (nginx)
-- ✅ No data persistence (temp files only)
+- ✅ File type validation (content-type + extension check)
+- ✅ File size limits (FastAPI default)
+- ✅ CORS configured for localhost development
+- ✅ No persistent storage (in-memory processing)
+- ✅ Security headers (via FastAPI)
 
 ### Out of Scope
-- ❌ User authentication (by design)
-- ❌ Rate limiting per user (IP-based only)
+- ❌ User authentication (by design - no accounts)
+- ❌ Rate limiting
+- ❌ File persistence
 
 ### Recommendations for Production
-1. Add Cloudflare or similar for DDoS protection
+1. Add rate limiting (e.g., slowapi)
 2. Enable HTTPS with Let's Encrypt
-3. Set up regular security audits
-4. Monitor for abuse patterns
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Please:
-
-1. Check the [ROADMAP.md](./ROADMAP.md) for planned features
-2. Create an issue before starting work
-3. Follow existing code style
-4. Add tests for new functionality
-
----
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
-
----
-
-## ⚠️ Disclaimer
-
-This project is for entertainment purposes only. The AI-generated roasts are meant to be humorous and should not be taken as professional career advice. No human reviewers were harmed in the making of this application.
-
----
-
-## 📞 Support
-
-- **Issues:** [GitHub Issues](https://github.com/your-username/cv-roaster/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/your-username/cv-roaster/discussions)
-
----
-
-*Built with ☕ and questionable AI decisions*
+3. Add request size limits
+4. Implement file scanning for malware
+5. Set up monitoring and abuse detection
+6. Consider temporary file cleanup for large deployments

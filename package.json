@@ -6,6 +6,8 @@
   ],
   "scripts": {
     "dev": "bun run --filter frontend dev",
-    "build": "bun run --filter frontend build"
+    "build": "bun run --filter frontend build",
+    "check": "bun run --filter frontend check",
+    "format": "bun run --filter frontend format"
   }
 }
