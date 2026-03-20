@@ -4,6 +4,7 @@
 - [x] Agent read CV
 - [x] Agent response
 - [x] React UI
+- [ ] Prepare for non-responding ollama server
 
 ## Post-prod features
 
