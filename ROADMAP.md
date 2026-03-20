@@ -11,5 +11,4 @@
 - [ ] Share conversations
 - [ ] Pdf storing (for analytics purposes)
 - [ ] Chat history storing (for analytics purposes)
-- [ ] Use cloud model
 - [ ] Proxy rate limiting
