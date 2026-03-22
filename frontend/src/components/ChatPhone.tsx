@@ -60,7 +60,18 @@ export function ChatPhone() {
 					body: formData,
 				},
 			);
+
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}`);
+			}
+
 			const data: RoastResponse = await response.json();
+
+			// Handle backend error responses (e.g., LLM server unavailable)
+			if ("error" in data && data.error) {
+				throw new Error(data.error);
+			}
+
 			setIsTyping(false);
 			const roastChunks = data.roast.split(/\n\n+/);
 			for (const chunk of roastChunks) {
@@ -83,7 +94,7 @@ export function ChatPhone() {
 				...prev,
 				{
 					id: Date.now().toString(),
-					text: "Oops, something went wrong. Try again?",
+					text: "Sorry, I'm busy right now, will call you later",
 					sender: "hr",
 					timestamp: new Date(),
 				},
