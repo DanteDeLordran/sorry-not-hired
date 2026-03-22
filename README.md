@@ -2,7 +2,7 @@
 
 > AI-powered CV roast service. Upload your resume and get brutally honest feedback.
 
-**Status:** 🚧 In Development | **Version:** 0.1.0
+**Status:** 🚧 In Development | **Version:** 0.4.0
 
 ---
 
@@ -36,7 +36,7 @@ SorryNotHired uses AI to analyze your CV and deliver a no-holds-barred critique.
 | **Frontend** | React 19, TanStack Router, Tailwind CSS v4, Bun |
 | **Backend** | Python 3.13+, FastAPI, Pydantic AI, pymupdf4llm, uv |
 | **LLM** | OpenAI-compatible API (LM Studio, Ollama, vLLM, OpenAI) |
-| **Infrastructure** | Docker, Docker Compose |
+| **Infrastructure** | Docker, Docker Compose, Coolify |
 | **Tooling** | Biome (lint/format), Vitest (testing), Ruff (backend lint) |
 
 ---
@@ -55,7 +55,7 @@ SorryNotHired uses AI to analyze your CV and deliver a no-holds-barred critique.
 
 ```bash
 git clone <your-repo-url>
-cd cv-roaster
+cd sorry-not-hired
 ```
 
 #### 2. Backend Setup
@@ -71,7 +71,7 @@ cp ../.env.example .env
 
 # Edit .env with your LLM API credentials
 # API_KEY=your-key-here
-# BASE_URL=http://localhost:1234/v1  # or your preferred provider
+# BASE_URL=http://localhost:1234/v1
 # CHAT_MODEL=your-model-name
 
 # Run development server
@@ -116,17 +116,64 @@ CHAT_MODEL=your-model-name
 
 ## 📦 Docker Deployment
 
-### Build and Run
+### Local Development (LM Studio)
+
+LM Studio runs on your host machine. The backend container reaches it via `host-gateway`:
 
 ```bash
-# Copy environment file
 cp .env.example .env
+```
 
-# Edit with your configuration
-nano .env
+Edit `.env`:
+```bash
+API_KEY=lm_studio
+BASE_URL=http://host-gateway:1234/v1
+CHAT_MODEL=your-model-name
+DOCKER_IMAGE_BACKEND=sorry-not-hired-backend
+DOCKER_IMAGE_FRONTEND=sorry-not-hired-frontend
+TAG=latest
+VITE_BASE_URL=http://localhost:8000/api/v1
+```
 
-# Build and start all services
+```bash
 docker compose up --build
+```
+
+### Production (Ollama on self-hosted server)
+
+The production setup uses Ollama with a custom GGUF model. The model file lives on the host server and is mounted into the Ollama container — it is **not** baked into the image and **not** tracked in git.
+
+#### One-time server setup
+
+Download the model directly on the server (only needed once):
+
+```bash
+mkdir -p /data/sorrynotnhired/models
+cd /data/sorrynotnhired/models
+
+pip install huggingface_hub
+huggingface-cli download \
+  HauhauCS/Qwen3.5-2B-Uncensored-GGUF \
+  Qwen3.5-2B-Uncensored-HauhauCS-Aggressive-Q8_0.gguf \
+  --local-dir .
+```
+
+#### Production environment variables
+
+```bash
+API_KEY=ollama
+BASE_URL=http://ollama:11434/v1
+CHAT_MODEL=qwen3.5-uncensored
+DOCKER_IMAGE_BACKEND=ghcr.io/yourusername/sorrynotnhired-backend
+DOCKER_IMAGE_FRONTEND=ghcr.io/yourusername/sorrynotnhired-frontend
+TAG=0.1.0
+VITE_BASE_URL=https://yourdomain.com/api/v1
+```
+
+#### Deploy
+
+```bash
+docker compose up -d
 ```
 
 Services available at:
@@ -134,19 +181,46 @@ Services available at:
 - **Backend API:** `http://localhost:8000`
 - **API Docs:** `http://localhost:8000/docs`
 
+On first boot, `ollama-init` registers the model from the mounted GGUF into the `ollama_data` volume. Subsequent deploys skip this step automatically.
+
 ### Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `API_KEY` | Your LLM API key | `qwen3.5-2b-uncensored...` |
-| `BASE_URL` | LLM API base URL | `http://127.0.0.1:1234/v1` |
-| `CHAT_MODEL` | Model name to use | `lm_studio` |
-| `DOCKER_IMAGE_BACKEND` | Backend image name | `cv-roaster-backend` |
-| `DOCKER_IMAGE_FRONTEND` | Frontend image name | `cv-roaster-frontend` |
+| `API_KEY` | LLM API key | `lm_studio` |
+| `BASE_URL` | LLM API base URL | `http://localhost:1234/v1` |
+| `CHAT_MODEL` | Model name | `qwen3.5-2b-uncensored-hauhaucs-aggressive` |
+| `DOCKER_IMAGE_BACKEND` | Backend image name | `sorry-not-hired-backend` |
+| `DOCKER_IMAGE_FRONTEND` | Frontend image name | `sorry-not-hired-frontend` |
 | `TAG` | Image tag | `latest` |
-| `VITE_API_URL` | Frontend API URL | `http://localhost:8000` |
+| `VITE_BASE_URL` | Frontend API URL | `http://localhost:8000/api/v1` |
 
 See `.env.example` for the full list.
+
+---
+
+## ☁️ Coolify Deployment
+
+This project is designed to be deployed via [Coolify](https://coolify.io/) on a self-hosted VPS.
+
+### Recommended server spec
+
+- 4 dedicated CPU cores
+- 8 GB RAM minimum (Ollama is capped at 3 GB via compose resource limits)
+- 20 GB+ NVMe storage
+
+### Setup
+
+1. Install Coolify on your server
+2. Add your server under **Servers**
+3. Open the server terminal and run the one-time model download above
+4. Create a new project in Coolify → **Docker Compose**
+5. Point it at your repository
+6. Add your production environment variables under **Environment Variables**
+7. Configure your GHCR credentials under **Sources → Container Registries**
+8. Deploy
+
+Every subsequent `git push` redeploys the backend and frontend. Ollama and the model file are unaffected by redeploys.
 
 ---
 
@@ -164,7 +238,7 @@ Returns `200 OK` if the service is running.
 ```bash
 GET /api/v1/health/readiness
 ```
-Returns `200 OK` if ready to serve traffic, `503` otherwise. Includes LM Studio connectivity check.
+Returns `200 OK` if ready to serve traffic, `503` otherwise. Includes LLM connectivity check.
 
 ---
 
@@ -188,7 +262,7 @@ Response: 200 OK
 
 **Response Fields:**
 - `roast` (string): The AI-generated critique, formatted in paragraphs
-- `severity` (string): Roast intensity level - `light`, `medium`, or `harsh`
+- `severity` (string): Roast intensity level — `light`, `medium`, or `harsh`
 - `filename` (string): Name of the uploaded PDF file
 
 **Error Response:**
@@ -197,6 +271,8 @@ Response: 200 OK
 ```
 
 ---
+
+## 🧪 Testing
 
 ### Frontend
 
@@ -213,6 +289,18 @@ bun run lint
 bun run format
 ```
 
+### Backend
+
+```bash
+cd backend
+
+# Run tests
+uv run pytest
+
+# Linting
+uv run ruff check .
+```
+
 ---
 
 ## 🛠️ Development
@@ -220,7 +308,7 @@ bun run format
 ### Project Structure
 
 ```
-cv-roaster/
+sorry-not-hired/
 ├── backend/
 │   ├── src/
 │   │   ├── api/
@@ -254,9 +342,12 @@ cv-roaster/
 │   │   └── routeTree.gen.ts   # Auto-generated routes
 │   ├── package.json
 │   └── Dockerfile
-├── compose.yml            # Docker Compose config
-├── ROADMAP.md             # Development roadmap
-└── .env.example           # Environment template
+├── models/                    # GGUF files — gitignored, lives on server
+├── compose.yml                # Docker Compose config
+├── Modelfile                  # Ollama model definition
+├── init-ollama.sh             # One-time model registration script
+├── ROADMAP.md                 # Development roadmap
+└── .env.example               # Environment template
 ```
 
 ---
@@ -269,15 +360,16 @@ cv-roaster/
 - ✅ CORS configured for localhost development
 - ✅ No persistent storage (in-memory processing)
 - ✅ Security headers (via FastAPI)
+- ✅ Container resource limits (CPU + memory caps on Ollama)
 
 ### Out of Scope
-- ❌ User authentication (by design - no accounts)
+- ❌ User authentication (by design — no accounts)
 - ❌ Rate limiting
 - ❌ File persistence
 
 ### Recommendations for Production
 1. Add rate limiting (e.g., slowapi)
-2. Enable HTTPS with Let's Encrypt
+2. Enable HTTPS with Let's Encrypt (handled by Coolify/Traefik)
 3. Add request size limits
 4. Implement file scanning for malware
 5. Set up monitoring and abuse detection

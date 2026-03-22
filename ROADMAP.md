@@ -4,6 +4,7 @@
 - [x] Agent read CV
 - [x] Agent response
 - [x] React UI
+- [ ] Prepare for non-responding ollama server
 
 ## Post-prod features
 
@@ -11,5 +12,4 @@
 - [ ] Share conversations
 - [ ] Pdf storing (for analytics purposes)
 - [ ] Chat history storing (for analytics purposes)
-- [ ] Use cloud model
 - [ ] Proxy rate limiting
