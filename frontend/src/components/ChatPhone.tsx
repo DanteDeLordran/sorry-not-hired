@@ -62,15 +62,10 @@ export function ChatPhone() {
 			);
 
 			if (!response.ok) {
-				throw new Error(`HTTP ${response.status}`);
+				throw new Error(String(response.status));
 			}
 
 			const data: RoastResponse = await response.json();
-
-			// Handle backend error responses (e.g., LLM server unavailable)
-			if ("error" in data && data.error) {
-				throw new Error(data.error);
-			}
 
 			setIsTyping(false);
 			const roastChunks = data.roast.split(/\n\n+/);
@@ -88,13 +83,22 @@ export function ChatPhone() {
 					]);
 				}
 			}
-		} catch {
+		} catch (err) {
 			setIsTyping(false);
+			const status = err instanceof Error ? err.message : "";
+			let text = "Sorry, I'm busy right now, will call you later";
+			if (status === "400" || status === "413") {
+				text = "That file's not gonna work — send a real PDF, max 5MB.";
+			} else if (status === "422") {
+				text = "Hmm, that doesn't look like a CV. Try a resume PDF.";
+			} else if (status === "503" || status === "504") {
+				text = "My brain is offline rn. Try again in a sec.";
+			}
 			setMessages((prev) => [
 				...prev,
 				{
 					id: Date.now().toString(),
-					text: "Sorry, I'm busy right now, will call you later",
+					text,
 					sender: "hr",
 					timestamp: new Date(),
 				},
