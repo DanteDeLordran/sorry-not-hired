@@ -1,130 +1,86 @@
-# SorryNotHired 🤖📄
+# SorryNotHired
 
-> AI-powered CV roast service. Upload your resume and get brutally honest feedback.
+Upload a CV, extract the text from the PDF, and send it to an OpenAI-compatible model for a deliberately mean review.
 
-**Status:** 🚧 In Development | **Version:** 0.4.0
+This is mostly a joke project, but the stack is real: React on the frontend, FastAPI on the backend, and a local or hosted LLM behind an OpenAI-compatible API.
 
----
+## Stack
 
-## 🎯 What It Does
+| Part | Tech |
+| --- | --- |
+| Frontend | React 19, TanStack Router, Tailwind CSS v4, Bun |
+| Backend | FastAPI, Pydantic AI, pymupdf4llm, uv |
+| Model API | LM Studio, Ollama, vLLM, OpenAI, or anything OpenAI-compatible |
+| Deployment | Docker Compose, Nginx, optional Coolify |
 
-SorryNotHired uses AI to analyze your CV and deliver a no-holds-barred critique. No corporate speak, no sugar-coating—just honest (and entertaining) feedback about your resume, disguised as an HR recruiter venting to a coworker.
+## How It Works
 
-**Features:**
-- 📤 PDF upload with instant text extraction (pymupdf4llm)
-- 🤖 AI-powered roast generation (Pydantic AI + OpenAI-compatible models)
-- 💬 Chat-style UI with typing indicators and message streaming
-- 🎨 Modern, responsive phone-themed UI
-- 🔒 Local LLM support (LM Studio, Ollama) or cloud providers
+1. The frontend sends a PDF as `multipart/form-data`.
+2. The backend checks the upload and extracts Markdown from the PDF.
+3. The extracted CV text is sent to the configured LLM.
+4. The model response is returned as JSON and displayed as chat bubbles.
 
----
+There is no database and no user account system. Uploaded files are processed in memory and are not stored by the app.
 
-## 🏗️ Architecture
+## Requirements
 
-```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   Frontend  │────▶│   Backend    │────▶│   LLM API   │
-│  (React +   │     │   (FastAPI)  │     │  (OpenAI-   │
-│  TanStack)  │◀────│  + Pydantic  │     │  compatible)│
-└─────────────┘     └──────────────┘     └─────────────┘
-```
+- Python 3.13+
+- [uv](https://docs.astral.sh/uv/)
+- [Bun](https://bun.sh/)
+- An OpenAI-compatible model endpoint
+- Docker, if you want to use the compose setup
 
-### Tech Stack
+## Local Development
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | React 19, TanStack Router, Tailwind CSS v4, Bun |
-| **Backend** | Python 3.13+, FastAPI, Pydantic AI, pymupdf4llm, uv |
-| **LLM** | OpenAI-compatible API (LM Studio, Ollama, vLLM, OpenAI) |
-| **Infrastructure** | Docker, Docker Compose, Coolify |
-| **Tooling** | Biome (lint/format), Vitest (testing), Ruff (backend lint) |
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- [uv](https://docs.astral.sh/uv/) (Python package manager)
-- [Bun](https://bun.sh/) (JavaScript runtime)
-- Docker & Docker Compose (optional, for containerized deployment)
-
-### Development Setup
-
-#### 1. Clone the Repository
-
-```bash
-git clone <your-repo-url>
-cd sorry-not-hired
-```
-
-#### 2. Backend Setup
+### Backend
 
 ```bash
 cd backend
-
-# Install dependencies
 uv sync
-
-# Copy environment file
 cp ../.env.example .env
-
-# Edit .env with your LLM API credentials
-# API_KEY=your-key-here
-# BASE_URL=http://localhost:1234/v1
-# CHAT_MODEL=your-model-name
-
-# Run development server
 fastapi dev src/app.py
 ```
 
-Backend runs on: `http://localhost:8000`
+The API runs at `http://localhost:8000`.
 
-#### 3. Frontend Setup
+Set these values in `.env`:
 
-```bash
-cd frontend
-
-# Install dependencies
-bun install
-
-# Run development server
-bun run dev
-```
-
-Frontend runs on: `http://localhost:3000`
-
-#### 4. LLM Provider
-
-This project requires an OpenAI-compatible API. Options:
-
-| Provider | Setup |
-|----------|-------|
-| **LM Studio** (local) | Download models, run server on `http://localhost:1234` |
-| **Ollama** (local) | Run `ollama serve` on `http://localhost:11434` |
-| **vLLM** | Self-hosted inference server |
-| **OpenAI** | Get API key from [platform.openai.com](https://platform.openai.com) |
-
-Configure in `.env`:
 ```bash
 API_KEY=your-api-key
 BASE_URL=http://localhost:1234/v1
 CHAT_MODEL=your-model-name
 ```
 
----
+For LM Studio, `BASE_URL` is usually `http://localhost:1234/v1`.
 
-## 📦 Docker Deployment
+For Ollama, it is usually `http://localhost:11434/v1`.
 
-### Local Development (LM Studio)
+### Frontend
 
-LM Studio runs on your host machine. The backend container reaches it via `host-gateway`:
+```bash
+cd frontend
+bun install
+bun run dev
+```
+
+The frontend runs at `http://localhost:3000`.
+
+If the backend is not on the same origin, set:
+
+```bash
+VITE_BASE_URL=http://localhost:8000/api/v1
+```
+
+## Docker
+
+Copy the sample environment file first:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
+For a local LM Studio server running on the host machine, use:
+
 ```bash
 API_KEY=lm_studio
 BASE_URL=http://host-gateway:1234/v1
@@ -132,20 +88,22 @@ CHAT_MODEL=your-model-name
 DOCKER_IMAGE_BACKEND=sorry-not-hired-backend
 DOCKER_IMAGE_FRONTEND=sorry-not-hired-frontend
 TAG=latest
-VITE_BASE_URL=http://localhost:8000/api/v1
+VITE_BASE_URL=/api/v1
 ```
+
+Then run:
 
 ```bash
 docker compose up --build
 ```
 
-### Production (Ollama on self-hosted server)
+The frontend is exposed on port `80`. The backend is exposed on port `8000` by the current compose file.
 
-The production setup uses Ollama with a custom GGUF model. The model file lives on the host server and is mounted into the Ollama container — it is **not** baked into the image and **not** tracked in git.
+## Ollama Deployment
 
-#### One-time server setup
+The compose setup can run Ollama with a GGUF model mounted from the host. The model is not stored in this repository.
 
-Download the model directly on the server (only needed once):
+On the server, download the model once:
 
 ```bash
 mkdir -p /data/sorrynotnhired/models
@@ -158,7 +116,7 @@ huggingface-cli download \
   --local-dir .
 ```
 
-#### Production environment variables
+Use environment values like these:
 
 ```bash
 API_KEY=ollama
@@ -170,89 +128,43 @@ TAG=0.1.0
 VITE_BASE_URL=https://yourdomain.com/api/v1
 ```
 
-#### Deploy
+Start it with:
 
 ```bash
 docker compose up -d
 ```
 
-Services available at:
-- **Frontend:** `http://localhost:80`
-- **Backend API:** `http://localhost:8000`
-- **API Docs:** `http://localhost:8000/docs`
+On first boot, `ollama-init` registers the mounted model into the Ollama volume. Later deploys reuse that volume.
 
-On first boot, `ollama-init` registers the model from the mounted GGUF into the `ollama_data` volume. Subsequent deploys skip this step automatically.
+## API
 
-### Environment Variables
+Base path: `/api/v1`
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `API_KEY` | LLM API key | `lm_studio` |
-| `BASE_URL` | LLM API base URL | `http://localhost:1234/v1` |
-| `CHAT_MODEL` | Model name | `qwen3.5-2b-uncensored-hauhaucs-aggressive` |
-| `DOCKER_IMAGE_BACKEND` | Backend image name | `sorry-not-hired-backend` |
-| `DOCKER_IMAGE_FRONTEND` | Frontend image name | `sorry-not-hired-frontend` |
-| `TAG` | Image tag | `latest` |
-| `VITE_BASE_URL` | Frontend API URL | `http://localhost:8000/api/v1` |
+### Health
 
-See `.env.example` for the full list.
-
----
-
-## ☁️ Coolify Deployment
-
-This project is designed to be deployed via [Coolify](https://coolify.io/) on a self-hosted VPS.
-
-### Recommended server spec
-
-- 4 dedicated CPU cores
-- 8 GB RAM minimum (Ollama is capped at 3 GB via compose resource limits)
-- 20 GB+ NVMe storage
-
-### Setup
-
-1. Install Coolify on your server
-2. Add your server under **Servers**
-3. Open the server terminal and run the one-time model download above
-4. Create a new project in Coolify → **Docker Compose**
-5. Point it at your repository
-6. Add your production environment variables under **Environment Variables**
-7. Configure your GHCR credentials under **Sources → Container Registries**
-8. Deploy
-
-Every subsequent `git push` redeploys the backend and frontend. Ollama and the model file are unaffected by redeploys.
-
----
-
-## 📚 API Reference
-
-### Health Endpoints
-
-#### Liveness Probe
-```bash
+```http
 GET /api/v1/health/liveness
-```
-Returns `200 OK` if the service is running.
-
-#### Readiness Probe
-```bash
 GET /api/v1/health/readiness
 ```
-Returns `200 OK` if ready to serve traffic, `503` otherwise. Includes LLM connectivity check.
 
----
+`readiness` checks whether the configured model endpoint is reachable.
 
-### CV Roast Endpoint
+### Roast A CV
 
-#### Upload CV and Get Roast
-```bash
+```http
 POST /api/v1/chat/message
 Content-Type: multipart/form-data
+```
 
-FormData:
-  file: <PDF file>
+Form field:
 
-Response: 200 OK
+```text
+file=<PDF file>
+```
+
+Example response:
+
+```json
 {
   "roast": "Your brutally honest feedback...",
   "severity": "medium",
@@ -260,117 +172,75 @@ Response: 200 OK
 }
 ```
 
-**Response Fields:**
-- `roast` (string): The AI-generated critique, formatted in paragraphs
-- `severity` (string): Roast intensity level — `light`, `medium`, or `harsh`
-- `filename` (string): Name of the uploaded PDF file
+Expected error cases include non-PDF uploads, oversized files, unreadable PDFs, files that do not look like CVs, and unavailable model backends.
 
-**Error Response:**
-```json
-{ "error": "Not a PDF file" }
-```
+## Scripts
 
----
-
-## 🧪 Testing
-
-### Frontend
+Frontend:
 
 ```bash
 cd frontend
-
-# Run tests
-bun run test
-
-# Linting
+bun run dev
+bun run build
 bun run lint
-
-# Formatting check
 bun run format
+bun run test
 ```
 
-### Backend
+Backend:
 
 ```bash
 cd backend
-
-# Run tests
-uv run pytest
-
-# Linting
-uv run ruff check .
+uv sync
+fastapi dev src/app.py
 ```
 
----
+The backend README lists additional linting and type-checking commands, but tests are not wired up yet.
 
-## 🛠️ Development
+## Project Layout
 
-### Project Structure
-
-```
+```text
 sorry-not-hired/
-├── backend/
-│   ├── src/
-│   │   ├── api/
-│   │   │   ├── chat/          # CV roast endpoint
-│   │   │   │   ├── models.py  # Pydantic schemas
-│   │   │   │   └── router.py  # POST /chat/message
-│   │   │   ├── health/
-│   │   │   │   ├── models.py  # Health check schemas
-│   │   │   │   └── router.py  # GET /health/liveness, /readiness
-│   │   │   └── router.py      # API router
-│   │   ├── core/
-│   │   │   └── agent.py       # Pydantic AI agent setup
-│   │   ├── schemas/           # Shared Pydantic models
-│   │   ├── app.py             # FastAPI app factory
-│   │   ├── config.py          # Environment configuration
-│   │   ├── main.py            # Entry point
-│   │   └── middleware.py      # CORS setup
-│   ├── pyproject.toml
-│   └── Dockerfile
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   └── ChatPhone.tsx  # Main chat UI component
-│   │   ├── models/
-│   │   │   └── roast.ts       # TypeScript types
-│   │   ├── routes/
-│   │   │   ├── __root.tsx     # Root layout
-│   │   │   └── index.tsx      # Home page
-│   │   ├── main.tsx           # Entry point
-│   │   ├── router.tsx         # Router configuration
-│   │   └── routeTree.gen.ts   # Auto-generated routes
-│   ├── package.json
-│   └── Dockerfile
-├── models/                    # GGUF files — gitignored, lives on server
-├── compose.yml                # Docker Compose config
-├── Modelfile                  # Ollama model definition
-├── init-ollama.sh             # One-time model registration script
-├── ROADMAP.md                 # Development roadmap
-└── .env.example               # Environment template
+  backend/
+    src/
+      api/
+        chat/       PDF upload and roast endpoint
+        health/     liveness and readiness endpoints
+      core/         Pydantic AI agent setup
+      app.py        FastAPI app factory
+      config.py     environment config
+      middleware.py CORS setup
+  frontend/
+    src/
+      components/   main chat UI
+      models/       TypeScript response types
+      routes/       TanStack routes
+  compose.yml       app, frontend, and Ollama services
+  Modelfile         Ollama model definition
+  init-ollama.sh    one-time Ollama model registration
 ```
 
----
+## Security Notes
 
-## 🔒 Security Considerations
+This app accepts arbitrary PDF uploads and sends extracted CV text to an LLM. Treat it as an internet-facing upload service, not just a toy, if you deploy it publicly.
 
-### Current Implementation
-- ✅ File type validation (content-type + extension check)
-- ✅ File size limits (FastAPI default)
-- ✅ CORS configured for localhost development
-- ✅ No persistent storage (in-memory processing)
-- ✅ Security headers (via FastAPI)
-- ✅ Container resource limits (CPU + memory caps on Ollama)
+Current safeguards:
 
-### Out of Scope
-- ❌ User authentication (by design — no accounts)
-- ❌ Rate limiting
-- ❌ File persistence
+- PDF-only upload checks
+- 5 MB application-level file limit
+- no file persistence
+- CORS limited to local frontend origins in the backend
+- model call timeout
 
-### Recommendations for Production
-1. Add rate limiting (e.g., slowapi)
-2. Enable HTTPS with Let's Encrypt (handled by Coolify/Traefik)
-3. Add request size limits
-4. Implement file scanning for malware
-5. Set up monitoring and abuse detection
-6. Consider temporary file cleanup for large deployments
+Things to add before a serious public deployment:
+
+- rate limiting on `/api/v1/chat/message`
+- reverse-proxy request size limits
+- stricter PDF validation and parser sandboxing
+- monitoring for abuse and model latency
+- clear privacy notice if CVs are sent to a cloud LLM
+- firewall rules so Ollama and the backend are not exposed directly unless intended
+
+## Notes
+
+The tone of the generated feedback is intentionally harsh. If you reuse this outside a joke/demo context, change the system prompt first.
