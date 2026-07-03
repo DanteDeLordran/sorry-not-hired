@@ -4,6 +4,17 @@ Upload a CV, extract the text from the PDF, and send it to an OpenAI-compatible 
 
 This is mostly a joke project, but the stack is real: React on the frontend, FastAPI on the backend, and a local or hosted LLM behind an OpenAI-compatible API.
 
+## Status
+
+Version `0.1.0`. The core flow works end to end: PDF upload, text extraction, non-CV file rejection, roast generation, and a fallback message when the backend or model server is unavailable. Deployment runs through Docker Compose with Ollama; only the frontend is exposed on the host.
+
+Not done yet (see `ROADMAP.md`):
+
+- rate limiting on the roast endpoint
+- shareable conversations
+- PDF and chat history storage for analytics
+- automated tests (frontend and backend)
+
 ## Stack
 
 | Part | Tech |
@@ -97,7 +108,7 @@ Then run:
 docker compose up --build
 ```
 
-The frontend is exposed on port `80`. The backend is exposed on port `8000` by the current compose file.
+Only the frontend is exposed on the host, on port `80`. The backend and Ollama are reachable only on the internal Docker network — nginx proxies `/api/` requests to the backend, and the backend talks to Ollama at `http://ollama:11434`.
 
 ## Ollama Deployment
 
@@ -226,20 +237,19 @@ This app accepts arbitrary PDF uploads and sends extracted CV text to an LLM. Tr
 
 Current safeguards:
 
-- PDF-only upload checks
-- 5 MB application-level file limit
+- PDF-only upload checks (extension, content type, and magic bytes)
+- 5 MB application-level file limit and a 6 MB nginx request size limit
 - no file persistence
 - CORS limited to local frontend origins in the backend
 - model call timeout
+- backend and Ollama reachable only on the internal Docker network
 
 Things to add before a serious public deployment:
 
 - rate limiting on `/api/v1/chat/message`
-- reverse-proxy request size limits
 - stricter PDF validation and parser sandboxing
 - monitoring for abuse and model latency
 - clear privacy notice if CVs are sent to a cloud LLM
-- firewall rules so Ollama and the backend are not exposed directly unless intended
 
 ## Notes
 
