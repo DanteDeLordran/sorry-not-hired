@@ -2,8 +2,6 @@ services:
   ollama:
     image: ollama/ollama:latest
     restart: always
-    ports:
-      - "11434:11434"
     volumes:
       - /data/sorrynotnhired/models:/models:ro
       - ./Modelfile:/tmp/Modelfile:ro
@@ -45,8 +43,6 @@ services:
   backend:
     image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG:-latest}"
     restart: always
-    ports:
-      - "8000:8000"
     extra_hosts:
       - "host-gateway:host-gateway"
     environment:
