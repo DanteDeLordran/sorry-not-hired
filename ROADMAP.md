@@ -8,7 +8,7 @@
 
 ## Post-prod features
 
-- [ ] Ignore non-CV files
+- [x] Ignore non-CV files
 - [ ] Share conversations
 - [ ] Pdf storing (for analytics purposes)
 - [ ] Chat history storing (for analytics purposes)

@@ -1,9 +1,8 @@
+from api.chat.models import RoastOutput
 from pydantic_ai.agent import Agent
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.settings import ModelSettings
-
-from api.chat.models import RoastOutput
 
 
 def create_agent(
@@ -18,7 +17,7 @@ def create_agent(
     agent = Agent[None, RoastOutput](
         model,
         output_type=RoastOutput,
-        model_settings=ModelSettings(max_tokens=2000, temperature=0.7),
+        model_settings=ModelSettings(max_tokens=4096, temperature=0.7),
         system_prompt=system_prompt,
     )
 
