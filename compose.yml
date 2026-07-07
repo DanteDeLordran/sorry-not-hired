@@ -2,8 +2,6 @@ services:
   ollama:
     image: ollama/ollama:latest
     restart: always
-    ports:
-      - "11434:11434"
     volumes:
       - /data/sorrynotnhired/models:/models:ro
       - ./Modelfile:/tmp/Modelfile:ro
@@ -45,8 +43,6 @@ services:
   backend:
     image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG:-latest}"
     restart: always
-    ports:
-      - "8000:8000"
     extra_hosts:
       - "host-gateway:host-gateway"
     environment:
@@ -84,7 +80,7 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       args:
-        - VITE_API_URL=${VITE_BASE_URL:-http://localhost:8000/api/v1}
+        - VITE_BASE_URL=${VITE_BASE_URL:-/api/v1}
         - NODE_ENV=production
 
 volumes:

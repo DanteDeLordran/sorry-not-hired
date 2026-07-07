@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/chat")
 
 MAX_PDF_BYTES = 5 * 1024 * 1024  # 5 MB
+UPLOAD_READ_CHUNK_BYTES = 1024 * 1024
 AGENT_TIMEOUT_SECONDS = 60.0
 MIN_CV_TEXT_CHARS = 200
 CV_KEYWORDS = (
@@ -70,24 +71,33 @@ async def send_message(
             status_code=status.HTTP_400_BAD_REQUEST, detail="No file uploaded."
         )
 
-    if file.content_type != "application/pdf" and not file.filename.lower().endswith(
-        ".pdf"
+    if not file.filename.lower().endswith(".pdf") or (
+        file.content_type and file.content_type != "application/pdf"
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Only PDF files are accepted.",
         )
 
-    content = await file.read()
+    content = bytearray()
+    while chunk := await file.read(UPLOAD_READ_CHUNK_BYTES):
+        content.extend(chunk)
 
-    if len(content) > MAX_PDF_BYTES:
+        if len(content) > MAX_PDF_BYTES:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File too large. Max size is {MAX_PDF_BYTES // (1024 * 1024)} MB.",
+            )
+
+    pdf_bytes = bytes(content)
+    if not pdf_bytes.startswith(b"%PDF-"):
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File too large. Max size is {MAX_PDF_BYTES // (1024 * 1024)} MB.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only PDF files are accepted.",
         )
 
     try:
-        cv_text = pymupdf4llm.to_markdown(BytesIO(content))
+        cv_text = pymupdf4llm.to_markdown(BytesIO(pdf_bytes))
     except Exception as exc:
         logger.warning("PDF extraction failed for %s: %s", file.filename, exc)
         raise HTTPException(
