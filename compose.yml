@@ -4,7 +4,6 @@ services:
     restart: always
     volumes:
       - /data/sorrynotnhired/models:/models:ro
-      - ./Modelfile:/tmp/Modelfile:ro
       - ollama_data:/root/.ollama
     environment:
       - OLLAMA_NUM_THREADS=3
@@ -79,9 +78,6 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
-      args:
-        - VITE_BASE_URL=${VITE_BASE_URL:-/api/v1}
-        - NODE_ENV=production
 
 volumes:
   ollama_data:
