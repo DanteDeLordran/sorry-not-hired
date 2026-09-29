@@ -1,23 +1,20 @@
 import asyncio
 import logging
 import re
-from io import BytesIO
 from typing import Annotated
 
+import pymupdf
 import pymupdf4llm
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
-from fastapi.params import Depends
-from pydantic_ai.agent import Agent
 
-from api.chat.models import RoastOutput, RoastResponse
-from dependencies import get_agent
+from api.chat.models import RoastResponse
+from core.agent import agent
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/chat")
 
 MAX_PDF_BYTES = 5 * 1024 * 1024  # 5 MB
-UPLOAD_READ_CHUNK_BYTES = 1024 * 1024
 AGENT_TIMEOUT_SECONDS = 60.0
 MIN_CV_TEXT_CHARS = 200
 CV_KEYWORDS = (
@@ -61,35 +58,17 @@ def _looks_like_cv(text: str) -> bool:
     description="Upload a PDF CV and get a brutal roast in return",
 )
 async def send_message(
-    agent: Annotated[Agent[None, RoastOutput], Depends(get_agent)],
     file: Annotated[
         UploadFile, File(description="PDF file containing the CV to roast")
     ],
 ) -> RoastResponse:
-    if not file.filename:
+    pdf_bytes = await file.read()
+    if len(pdf_bytes) > MAX_PDF_BYTES:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="No file uploaded."
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"File too large. Max size is {MAX_PDF_BYTES // (1024 * 1024)} MB.",
         )
 
-    if not file.filename.lower().endswith(".pdf") or (
-        file.content_type and file.content_type != "application/pdf"
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only PDF files are accepted.",
-        )
-
-    content = bytearray()
-    while chunk := await file.read(UPLOAD_READ_CHUNK_BYTES):
-        content.extend(chunk)
-
-        if len(content) > MAX_PDF_BYTES:
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File too large. Max size is {MAX_PDF_BYTES // (1024 * 1024)} MB.",
-            )
-
-    pdf_bytes = bytes(content)
     if not pdf_bytes.startswith(b"%PDF-"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -97,7 +76,7 @@ async def send_message(
         )
 
     try:
-        cv_text = pymupdf4llm.to_markdown(BytesIO(pdf_bytes))
+        cv_text = pymupdf4llm.to_markdown(pymupdf.open(stream=pdf_bytes, filetype="pdf"))
     except Exception as exc:
         logger.warning("PDF extraction failed for %s: %s", file.filename, exc)
         raise HTTPException(
@@ -129,8 +108,4 @@ async def send_message(
             detail="The roast engine is unavailable right now. Try again soon.",
         ) from exc
 
-    return RoastResponse(
-        roast=result.output.roast,
-        severity=result.output.severity,
-        filename=file.filename,
-    )
+    return RoastResponse(roast=result.output)

@@ -1,3 +1,11 @@
-from app import create_app
+from fastapi import FastAPI
 
-app = create_app()
+from api.router import api
+
+app = FastAPI(
+    title="SorryNotHired API",
+    description="CV roasting as a service",
+    version="0.1.0",
+)
+
+app.include_router(api)
