@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { RoastResponse } from "../models/roast";
+import { useEffect, useRef, useState } from "react";
 
 interface Message {
 	id: string;
@@ -8,10 +7,20 @@ interface Message {
 	timestamp: Date;
 }
 
+let nextId = 1;
+const BUSY_REPLY = "Sorry, I'm busy right now, will call you later";
+const ERROR_REPLIES: Record<number, string> = {
+	400: "That file's not gonna work — send a real PDF, max 5MB.",
+	413: "That file's not gonna work — send a real PDF, max 5MB.",
+	422: "Hmm, that doesn't look like a CV. Try a resume PDF.",
+	503: "My brain is offline rn. Try again in a sec.",
+	504: "My brain is offline rn. Try again in a sec.",
+};
+
 export function ChatPhone() {
 	const [messages, setMessages] = useState<Message[]>([
 		{
-			id: "1",
+			id: "0",
 			text: "Hey! 👋 Just got your CV for review. Give me a sec to look it over...",
 			sender: "hr",
 			timestamp: new Date(Date.now() - 60000),
@@ -22,13 +31,16 @@ export function ChatPhone() {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
-	const scrollToBottom = useCallback(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, []);
-
+	// biome-ignore lint/correctness/useExhaustiveDependencies: scroll whenever a bubble appears
 	useEffect(() => {
-		scrollToBottom();
-	}, [scrollToBottom]);
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	}, [messages, isTyping]);
+
+	const addMessage = (text: string, sender: Message["sender"]) =>
+		setMessages((prev) => [
+			...prev,
+			{ id: String(nextId++), text, sender, timestamp: new Date() },
+		]);
 
 	const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -40,69 +52,33 @@ export function ChatPhone() {
 		const formData = new FormData();
 		formData.append("file", selectedFile);
 
-		setMessages((prev) => [
-			...prev,
-			{
-				id: Date.now().toString(),
-				text: `📄 ${selectedFile.name}`,
-				sender: "user",
-				timestamp: new Date(),
-			},
-		]);
+		addMessage(`📄 ${selectedFile.name}`, "user");
 		setIsTyping(true);
 		setSelectedFile(null);
 
+		let replies: string[];
 		try {
-			const response = await fetch(
-				`${import.meta.env.VITE_BASE_URL || ""}/chat/message`,
-				{
-					method: "POST",
-					body: formData,
-				},
-			);
-
-			if (!response.ok) {
-				throw new Error(String(response.status));
+			const response = await fetch("/api/v1/chat/message", {
+				method: "POST",
+				body: formData,
+			});
+			if (response.ok) {
+				const { roast }: { roast: string } = await response.json();
+				replies = roast
+					.split(/\n\n+/)
+					.map((chunk) => chunk.trim())
+					.filter(Boolean);
+			} else {
+				replies = [ERROR_REPLIES[response.status] ?? BUSY_REPLY];
 			}
+		} catch {
+			replies = [BUSY_REPLY];
+		}
 
-			const data: RoastResponse = await response.json();
-
-			setIsTyping(false);
-			const roastChunks = data.roast.split(/\n\n+/);
-			for (const chunk of roastChunks) {
-				if (chunk.trim()) {
-					await new Promise((resolve) => setTimeout(resolve, 800));
-					setMessages((prev) => [
-						...prev,
-						{
-							id: Date.now().toString(),
-							text: chunk.trim(),
-							sender: "hr",
-							timestamp: new Date(),
-						},
-					]);
-				}
-			}
-		} catch (err) {
-			setIsTyping(false);
-			const status = err instanceof Error ? err.message : "";
-			let text = "Sorry, I'm busy right now, will call you later";
-			if (status === "400" || status === "413") {
-				text = "That file's not gonna work — send a real PDF, max 5MB.";
-			} else if (status === "422") {
-				text = "Hmm, that doesn't look like a CV. Try a resume PDF.";
-			} else if (status === "503" || status === "504") {
-				text = "My brain is offline rn. Try again in a sec.";
-			}
-			setMessages((prev) => [
-				...prev,
-				{
-					id: Date.now().toString(),
-					text,
-					sender: "hr",
-					timestamp: new Date(),
-				},
-			]);
+		setIsTyping(false);
+		for (const reply of replies) {
+			await new Promise((resolve) => setTimeout(resolve, 800));
+			addMessage(reply, "hr");
 		}
 	};
 
