@@ -19,7 +19,7 @@ Not done yet (see `ROADMAP.md`):
 
 | Part | Tech |
 | --- | --- |
-| Frontend | React 19, TanStack Router, Tailwind CSS v4, Bun |
+| Frontend | React 19, Vite, Bun |
 | Backend | FastAPI, Pydantic AI, pymupdf4llm, uv |
 | Model API | LM Studio, Ollama, vLLM, OpenAI, or anything OpenAI-compatible |
 | Deployment | Docker Compose, Nginx, optional Coolify |
@@ -48,23 +48,18 @@ There is no database and no user account system. Uploaded files are processed in
 ```bash
 cd backend
 uv sync
-cp ../.env.example .env
-fastapi dev src/app.py
+fastapi dev src/main.py
 ```
 
 The API runs at `http://localhost:8000`.
 
-Set these values in `.env`:
+By default it talks to LM Studio at `http://127.0.0.1:1234/v1`. To use something else, export these before starting:
 
 ```bash
-API_KEY=your-api-key
-BASE_URL=http://localhost:1234/v1
-CHAT_MODEL=your-model-name
+export API_KEY=ollama
+export BASE_URL=http://localhost:11434/v1
+export CHAT_MODEL=your-model-name
 ```
-
-For LM Studio, `BASE_URL` is usually `http://localhost:1234/v1`.
-
-For Ollama, it is usually `http://localhost:11434/v1`.
 
 ### Frontend
 
@@ -74,13 +69,7 @@ bun install
 bun run dev
 ```
 
-The frontend runs at `http://localhost:3000`.
-
-If the backend is not on the same origin, set:
-
-```bash
-VITE_BASE_URL=http://localhost:8000/api/v1
-```
+The frontend runs at `http://localhost:3000` and proxies `/api` to the backend on port `8000`.
 
 ## Docker
 
@@ -90,16 +79,12 @@ Copy the sample environment file first:
 cp .env.example .env
 ```
 
-For a local LM Studio server running on the host machine, use:
+By default the backend uses the bundled Ollama service. To use LM Studio running on the host instead, uncomment the model variables in `.env`:
 
 ```bash
 API_KEY=lm_studio
 BASE_URL=http://host-gateway:1234/v1
 CHAT_MODEL=your-model-name
-DOCKER_IMAGE_BACKEND=sorry-not-hired-backend
-DOCKER_IMAGE_FRONTEND=sorry-not-hired-frontend
-TAG=latest
-VITE_BASE_URL=/api/v1
 ```
 
 Then run:
@@ -127,16 +112,12 @@ huggingface-cli download \
   --local-dir .
 ```
 
-Use environment values like these:
+Use environment values like these (the model variables default to the bundled Ollama):
 
 ```bash
-API_KEY=ollama
-BASE_URL=http://ollama:11434/v1
-CHAT_MODEL=qwen3.5-uncensored
 DOCKER_IMAGE_BACKEND=ghcr.io/yourusername/sorrynotnhired-backend
 DOCKER_IMAGE_FRONTEND=ghcr.io/yourusername/sorrynotnhired-frontend
 TAG=0.1.0
-VITE_BASE_URL=https://yourdomain.com/api/v1
 ```
 
 Start it with:
@@ -155,10 +136,7 @@ Base path: `/api/v1`
 
 ```http
 GET /api/v1/health/liveness
-GET /api/v1/health/readiness
 ```
-
-`readiness` checks whether the configured model endpoint is reachable.
 
 ### Roast A CV
 
@@ -177,9 +155,7 @@ Example response:
 
 ```json
 {
-  "roast": "Your brutally honest feedback...",
-  "severity": "medium",
-  "filename": "resume.pdf"
+  "roast": "Your brutally honest feedback..."
 }
 ```
 
@@ -195,7 +171,6 @@ bun run dev
 bun run build
 bun run lint
 bun run format
-bun run test
 ```
 
 Backend:
@@ -203,10 +178,8 @@ Backend:
 ```bash
 cd backend
 uv sync
-fastapi dev src/app.py
+fastapi dev src/main.py
 ```
-
-The backend README lists additional linting and type-checking commands, but tests are not wired up yet.
 
 ## Project Layout
 
@@ -216,16 +189,12 @@ sorry-not-hired/
     src/
       api/
         chat/       PDF upload and roast endpoint
-        health/     liveness and readiness endpoints
-      core/         Pydantic AI agent setup
-      app.py        FastAPI app factory
-      config.py     environment config
-      middleware.py CORS setup
+        health/     liveness endpoint
+      core/         Pydantic AI agent and system prompt
+      main.py       FastAPI app
   frontend/
     src/
       components/   main chat UI
-      models/       TypeScript response types
-      routes/       TanStack routes
   compose.yml       app, frontend, and Ollama services
   Modelfile         Ollama model definition
   init-ollama.sh    one-time Ollama model registration
@@ -237,10 +206,10 @@ This app accepts arbitrary PDF uploads and sends extracted CV text to an LLM. Tr
 
 Current safeguards:
 
-- PDF-only upload checks (extension, content type, and magic bytes)
+- PDF-only upload check (magic bytes)
 - 5 MB application-level file limit and a 6 MB nginx request size limit
 - no file persistence
-- CORS limited to local frontend origins in the backend
+- same-origin only: no CORS, the frontend proxies `/api` to the backend
 - model call timeout
 - backend and Ollama reachable only on the internal Docker network
 
