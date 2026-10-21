@@ -1,0 +1,114 @@
+# Standalone production deployment for Coolify's Traefik proxy.
+# Use the Git-based Docker Compose build pack with Raw Compose enabled.
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: always
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    cpus: 2.0
+    mem_limit: 1536m
+    pids_limit: 64
+    environment:
+      - API_KEY=${API_KEY:?Set API_KEY to your model provider API key}
+      - BASE_URL=${BASE_URL:-https://api.deepseek.com}
+      - CHAT_MODEL=${CHAT_MODEL:-deepseek-v4-pro}
+      - MAX_OUTPUT_TOKENS=${MAX_OUTPUT_TOKENS:-2048}
+      - AGENT_TIMEOUT_SECONDS=${AGENT_TIMEOUT_SECONDS:-120}
+      - LLM_READ_TIMEOUT_SECONDS=${LLM_READ_TIMEOUT_SECONDS:-30}
+      - LLM_MAX_RETRIES=${LLM_MAX_RETRIES:-0}
+      - MAX_CONCURRENT_ROASTS=${MAX_CONCURRENT_ROASTS:-4}
+      - MAX_PDF_JOBS=${MAX_PDF_JOBS:-2}
+      - MAX_PDF_PAGES=${MAX_PDF_PAGES:-20}
+      - MAX_CV_CHARS=${MAX_CV_CHARS:-100000}
+      - PDF_TIMEOUT_SECONDS=${PDF_TIMEOUT_SECONDS:-15}
+      - PDF_MEMORY_MB=${PDF_MEMORY_MB:-512}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health/liveness')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      - traefik.enable=false
+    networks:
+      - default
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: always
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,mode=1777
+    cpus: 1.0
+    mem_limit: 256m
+    pids_limit: 64
+    environment:
+      - PUBLIC_HOST=${PUBLIC_HOST:?Set PUBLIC_HOST to your public DNS hostname}
+      - REQUIRE_HTTPS=1
+      - TRUSTED_PROXY_CIDRS=${TRUSTED_PROXY_CIDRS:?Set TRUSTED_PROXY_CIDRS to the Coolify proxy IP with /32}
+      - ROAST_REQUESTS_PER_MINUTE=${ROAST_REQUESTS_PER_MINUTE:-6}
+      - ROAST_BURST=${ROAST_BURST:-2}
+      - MAX_CONCURRENT_ROASTS=${MAX_CONCURRENT_ROASTS:-4}
+      - MAX_ROASTS_PER_IP=${MAX_ROASTS_PER_IP:-2}
+    expose:
+      - "8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      # Local HTTP returns 308 because HTTPS is enforced; do not follow it.
+      test:
+        [
+          "CMD",
+          "curl",
+          "--fail",
+          "--silent",
+          "--output",
+          "/dev/null",
+          "http://127.0.0.1:8080/",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.routers.sorry-not-hired-http.rule=Host(`${PUBLIC_HOST:?Set PUBLIC_HOST to your public DNS hostname}`)
+      - traefik.http.routers.sorry-not-hired-http.entrypoints=http
+      - traefik.http.routers.sorry-not-hired-http.middlewares=sorry-not-hired-https
+      - traefik.http.routers.sorry-not-hired-http.service=sorry-not-hired
+      - traefik.http.middlewares.sorry-not-hired-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.sorry-not-hired-https.redirectscheme.permanent=true
+      - traefik.http.routers.sorry-not-hired.rule=Host(`${PUBLIC_HOST:?Set PUBLIC_HOST to your public DNS hostname}`)
+      - traefik.http.routers.sorry-not-hired.entrypoints=https
+      - traefik.http.routers.sorry-not-hired.tls=true
+      - traefik.http.routers.sorry-not-hired.tls.certresolver=letsencrypt
+      - traefik.http.routers.sorry-not-hired.service=sorry-not-hired
+      - traefik.http.services.sorry-not-hired.loadbalancer.server.port=8080
+    networks:
+      - default
+      - coolify
+
+networks:
+  default:
+  coolify:
+    external: true
+    name: coolify

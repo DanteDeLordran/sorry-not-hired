@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
+  <defs><clipPath id="portrait"><circle cx="80" cy="80" r="80"/></clipPath></defs>
+  <g clip-path="url(#portrait)">
+    <path fill="#e9dfca" d="M0 0h160v160H0z"/>
+    <path fill="#3a332d" d="M40 102V66c0-31 16-48 41-48 27 0 42 19 42 48v41Z"/>
+    <path fill="#65745a" d="M17 160c2-31 20-48 48-52h30c31 4 47 21 49 52Z"/>
+    <path fill="#e6aa87" d="M67 93h27v24l-14 15-13-15Z"/>
+    <path fill="#f1c09a" d="M51 57c0-21 59-25 59 1v23c0 22-15 34-30 34S51 99 51 81Z"/>
+    <path fill="#3a332d" d="M47 66c0-31 12-43 35-43 24 0 36 17 32 42-16-4-26-16-29-28-7 14-21 24-38 29Z"/>
+    <path fill="none" stroke="#302c28" stroke-width="4" d="M49 68h25v15H55c-4 0-6-4-6-8Zm38 0h25v7c0 4-2 8-6 8H87Zm-13 5h13"/>
+    <path stroke="#302c28" stroke-width="3" stroke-linecap="round" d="M61 74v2m38-2v2"/>
+    <path fill="none" stroke="#bd7a61" stroke-width="2" stroke-linecap="round" d="m80 77-3 11h5m-9 10 15-2"/>
+    <path fill="#f8f3e8" d="m65 109 15 22-14 8-13-24Zm30 0-15 22 14 8 13-24Z"/>
+    <path stroke="#495a43" stroke-width="2" d="M80 133v27"/>
+    <circle cx="52" cy="87" r="3" fill="#deb961"/><circle cx="109" cy="87" r="3" fill="#deb961"/>
+  </g>
+</svg>

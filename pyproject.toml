@@ -2,3 +2,6 @@
 members = [
     "backend",
 ]
+
+[tool.ruff.lint.isort]
+known-first-party = ["api", "core", "main"]
