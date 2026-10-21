@@ -1,411 +1,516 @@
 import { useEffect, useRef, useState } from "react";
+import { readRoastStream } from "../lib/roastStream";
+import { Icon } from "./Icon";
+import { PhoneClock } from "./PhoneClock";
 
 interface Message {
 	id: string;
 	text: string;
 	sender: "user" | "hr";
 	timestamp: Date;
+	attachment?: { name: string; size: number };
 }
 
+const greeting = (): Message => ({
+	id: "welcome",
+	text: "I'm Karen, head of HR at Acme Corp. Yes, THAT Acme Corp.\n\nSend your CV. Let's see what made you think you belong here.",
+	sender: "hr",
+	timestamp: new Date(),
+});
+
 let nextId = 1;
-const BUSY_REPLY = "Sorry, I'm busy right now, will call you later";
+const BUSY_REPLY =
+	"Even my inbox needs a break. Something went wrong — send your CV again in a moment.";
 const ERROR_REPLIES: Record<number, string> = {
-	400: "That file's not gonna work — send a real PDF, max 5MB.",
-	413: "That file's not gonna work — send a real PDF, max 5MB.",
-	422: "Hmm, that doesn't look like a CV. Try a resume PDF.",
-	503: "My brain is offline rn. Try again in a sec.",
-	504: "My brain is offline rn. Try again in a sec.",
+	400: "That file's not gonna work. Send a PDF, max 5 MB.",
+	413: "Even your file is overqualified. Send a shorter PDF, max 5 MB.",
+	422: "I couldn't read that as a CV. Try a text-based résumé PDF.",
+	429: "Too many CVs, too little patience. Give me a minute and try again.",
+	503: "My brain is offline. Try again in a moment.",
+	504: "Even I need a coffee break. Try sending that again.",
 };
 
-export function ChatPhone() {
-	const [messages, setMessages] = useState<Message[]>([
-		{
-			id: "0",
-			text: "Hey! 👋 Just got your CV for review. Give me a sec to look it over...",
-			sender: "hr",
-			timestamp: new Date(Date.now() - 60000),
-		},
-	]);
-	const [isTyping, setIsTyping] = useState(false);
-	const [selectedFile, setSelectedFile] = useState<File | null>(null);
-	const fileInputRef = useRef<HTMLInputElement>(null);
-	const messagesEndRef = useRef<HTMLDivElement>(null);
+function fileSize(bytes: number) {
+	return bytes < 1024 * 1024
+		? `${Math.max(1, Math.round(bytes / 1024))} KB`
+		: `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: scroll whenever a bubble appears
+export function ChatPhone() {
+	const [messages, setMessages] = useState<Message[]>(() => [greeting()]);
+	const [isTyping, setIsTyping] = useState(false);
+	const [isReceiving, setIsReceiving] = useState(false);
+	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [fileError, setFileError] = useState("");
+	const [isDragging, setIsDragging] = useState(false);
+	const fileInputRef = useRef<HTMLInputElement>(null);
+	const chatRef = useRef<HTMLDivElement>(null);
+	const phoneRef = useRef<HTMLElement>(null);
+	const sendRef = useRef<HTMLButtonElement>(null);
+	const requestRef = useRef<AbortController | null>(null);
+	const followChatRef = useRef(true);
+	const dragDepthRef = useRef(0);
+
+	useEffect(() => () => requestRef.current?.abort(), []);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Follow new content unless the reader has scrolled up.
 	useEffect(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+		const chat = chatRef.current;
+		if (chat && followChatRef.current) chat.scrollTop = chat.scrollHeight;
 	}, [messages, isTyping]);
 
-	const addMessage = (text: string, sender: Message["sender"]) =>
-		setMessages((prev) => [
-			...prev,
-			{ id: String(nextId++), text, sender, timestamp: new Date() },
-		]);
-
-	const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0];
-		if (file) setSelectedFile(file);
+	const selectFile = (file?: File) => {
+		if (!file || requestRef.current) return;
+		phoneRef.current?.scrollIntoView({
+			behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+				? "auto"
+				: "smooth",
+			block: "nearest",
+		});
+		setFileError("");
+		if (!file.name.toLowerCase().endsWith(".pdf")) {
+			setSelectedFile(null);
+			setFileError("PDFs only. Karen has standards. Allegedly.");
+			return;
+		}
+		if (file.size > 5 * 1024 * 1024) {
+			setSelectedFile(null);
+			setFileError("Keep it under 5 MB. The ego can stay unlimited.");
+			return;
+		}
+		setSelectedFile(file);
 	};
 
+	useEffect(() => {
+		if (selectedFile) sendRef.current?.focus({ preventScroll: true });
+	}, [selectedFile]);
+
 	const handleSubmit = async () => {
-		if (!selectedFile) return;
+		if (!selectedFile || isTyping || requestRef.current) return;
 		const formData = new FormData();
 		formData.append("file", selectedFile);
-
-		addMessage(`📄 ${selectedFile.name}`, "user");
+		setMessages((current) => [
+			...current,
+			{
+				id: String(nextId++),
+				text: selectedFile.name,
+				sender: "user",
+				timestamp: new Date(),
+				attachment: { name: selectedFile.name, size: selectedFile.size },
+			},
+		]);
+		followChatRef.current = true;
 		setIsTyping(true);
+		setFileError("");
 		setSelectedFile(null);
-
-		let replies: string[];
+		const controller = new AbortController();
+		requestRef.current = controller;
+		const replyId = String(nextId++);
+		const timestamp = new Date();
+		const updateReply = (text: string) => {
+			const reply: Message = { id: replyId, text, sender: "hr", timestamp };
+			setMessages((current) =>
+				current.some((message) => message.id === replyId)
+					? current.map((message) => (message.id === replyId ? reply : message))
+					: [...current, reply],
+			);
+		};
+		let text = "";
 		try {
 			const response = await fetch("/api/v1/chat/message", {
 				method: "POST",
+				headers: { Accept: "text/event-stream" },
 				body: formData,
+				signal: controller.signal,
 			});
-			if (response.ok) {
-				const { roast }: { roast: string } = await response.json();
-				replies = roast
-					.split(/\n\n+/)
-					.map((chunk) => chunk.trim())
-					.filter(Boolean);
-			} else {
-				replies = [ERROR_REPLIES[response.status] ?? BUSY_REPLY];
+			if (!response.ok) {
+				updateReply(ERROR_REPLIES[response.status] ?? BUSY_REPLY);
+				return;
+			}
+			for await (const event of readRoastStream(response)) {
+				if (event.type === "error") {
+					updateReply(ERROR_REPLIES[event.status] ?? BUSY_REPLY);
+				} else if (event.type === "delta") {
+					text += event.text;
+					setIsReceiving(true);
+					updateReply(text);
+				}
 			}
 		} catch {
-			replies = [BUSY_REPLY];
-		}
-
-		setIsTyping(false);
-		for (const reply of replies) {
-			await new Promise((resolve) => setTimeout(resolve, 800));
-			addMessage(reply, "hr");
+			if (!controller.signal.aborted) updateReply(BUSY_REPLY);
+		} finally {
+			requestRef.current = null;
+			setIsTyping(false);
+			setIsReceiving(false);
 		}
 	};
 
+	const resetChat = () => {
+		if (requestRef.current) return;
+		setMessages([greeting()]);
+		setSelectedFile(null);
+		setFileError("");
+		followChatRef.current = true;
+	};
 	const formatTime = (date: Date) =>
 		date.toLocaleTimeString("en-US", {
 			hour: "numeric",
 			minute: "2-digit",
-			hour12: true,
+			hour12: false,
 		});
+	const hasRoast = messages.some(
+		(message) =>
+			message.sender === "hr" && message.text.endsWith("sorry, not hired"),
+	);
 
 	return (
-		<div className="chatphone-scope">
-			<div className="scene">
-				<div className="desk" />
-
-				<div className="watermark">
-					SorryNotHired · Talent Acquisition Platform
+		<div className="app-shell">
+			<header className="site-header">
+				<a className="wordmark" href="/" aria-label="Sorry, not hired. Home">
+					<img src="/favicon.svg" alt="" width="38" height="38" />
+					<span>
+						sorry, not hired<span className="brand-period">.</span>
+					</span>
+				</a>
+				<div className="header-note">
+					<span className="status-dot" /> Open for rejections
 				</div>
-
+				<a
+					className="text-link header-link"
+					href="https://github.com/DanteDeLordran"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					Meet the culprit <Icon name="arrow" />
+				</a>
+			</header>
+			<main className="hero">
+				<section className="hero-copy" aria-labelledby="hero-title">
+					<div className="eyebrow">
+						<Icon name="spark" /> Roasting as a service
+					</div>
+					<h1 id="hero-title">
+						Great résumé.
+						<br />
+						<em>Terrible odds.</em>
+					</h1>
+					<p className="hero-description">
+						Your dream company. Your carefully crafted CV.
+						<br className="desktop-break" /> An HR manager with absolutely no
+						filter.
+					</p>
+					<p className="hero-aside">Meet Karen. She’ll take it from here.</p>
+					<button
+						type="button"
+						className="primary-button"
+						onClick={() =>
+							selectedFile ? handleSubmit() : fileInputRef.current?.click()
+						}
+						disabled={isTyping}
+					>
+						{isTyping
+							? "Karen is judging…"
+							: selectedFile
+								? "Send to Karen"
+								: "Get my CV roasted"}
+						<Icon name="arrow" />
+					</button>
+					<p className="upload-note">
+						One PDF. One brutal reply. Zero job offers.
+					</p>
+					<ol className="how-it-works" aria-label="How it works">
+						<li>
+							<span>01</span> Send your CV
+						</li>
+						<li>
+							<span>02</span> Question everything
+						</li>
+						<li>
+							<span>03</span> Don’t get hired
+						</li>
+					</ol>
+					<div className="fine-print">
+						<Icon name="spark" />
+						<p>
+							Even the perfect CV gets roasted.
+							<br />
+							<strong>Especially the perfect CV.</strong>
+						</p>
+					</div>
+				</section>
+				<div className="phone-stage">
+					<div className="stage-orbit" aria-hidden="true" />
+					<div className="stage-note" aria-hidden="true">
+						HR is online.
+						<br />
+						<em>Empathy is offline.</em>
+						<svg viewBox="0 0 80 50" fill="none" aria-hidden="true">
+							<path d="M5 6c38-10 60 2 53 31m-8-7 8 9 10-8" />
+						</svg>
+					</div>
+					<section
+						className={`phone-frame${isDragging ? " is-dragging" : ""}`}
+						aria-label="CV roast simulator"
+						ref={phoneRef}
+						onDragEnter={(event) => {
+							event.preventDefault();
+							if (!event.dataTransfer.types.includes("Files") || isTyping)
+								return;
+							dragDepthRef.current += 1;
+							setIsDragging(true);
+						}}
+						onDragOver={(event) => event.preventDefault()}
+						onDragLeave={(event) => {
+							event.preventDefault();
+							dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+							if (!dragDepthRef.current) setIsDragging(false);
+						}}
+						onDrop={(event) => {
+							event.preventDefault();
+							dragDepthRef.current = 0;
+							setIsDragging(false);
+							selectFile(event.dataTransfer.files[0]);
+						}}
+					>
+						<div className="phone-hardware" aria-hidden="true">
+							<span />
+							<span />
+							<span />
+						</div>
+						<div className="phone-screen">
+							<div className="phone-statusbar" aria-hidden="true">
+								<PhoneClock />
+								<div className="dynamic-island" />
+								<div className="phone-status-icons">
+									<svg
+										width="15"
+										height="12"
+										viewBox="0 0 18 14"
+										fill="currentColor"
+										aria-hidden="true"
+									>
+										<path d="M0 10h3v4H0zm5-3h3v7H5zm5-3h3v10h-3zm5-4h3v14h-3z" />
+									</svg>
+									<span className="phone-battery" />
+								</div>
+							</div>
+							<div className="chat-header">
+								<img
+									className="chat-avatar"
+									src="/karen.svg"
+									alt=""
+									width="43"
+									height="43"
+								/>
+								<div className="chat-header-info">
+									<h2>Karen from HR</h2>
+									<p>
+										<span className="status-dot" />{" "}
+										{isTyping
+											? "Typing something brutal…"
+											: "Online. Unfortunately."}
+									</p>
+								</div>
+								<button
+									className="icon-button reset-button"
+									type="button"
+									onClick={resetChat}
+									disabled={isTyping}
+									title="Start a new application"
+									aria-label="Start a new application"
+								>
+									<Icon name="reset" />
+								</button>
+							</div>
+							<div
+								className="chat-messages"
+								role="log"
+								aria-label="Conversation with Karen"
+								aria-live="polite"
+								aria-busy={isTyping}
+								ref={chatRef}
+								onScroll={() => {
+									const chat = chatRef.current;
+									if (chat)
+										followChatRef.current =
+											chat.scrollHeight - chat.scrollTop - chat.clientHeight <
+											60;
+								}}
+							>
+								<div className="contact-intro">
+									<span className="company-label">ACME CORP.</span>
+									<p>
+										Your next chapter.
+										<br />
+										<em>Probably a short one.</em>
+									</p>
+								</div>
+								<div className="date-chip">
+									Today · A fresh start. Allegedly.
+								</div>
+								{messages.map((msg) => (
+									<div key={msg.id} className={`bubble-row ${msg.sender}`}>
+										<div className={`bubble ${msg.sender}`}>
+											{msg.attachment ? (
+												<div className="attachment-message">
+													<span className="document-icon">
+														<Icon name="file" />
+													</span>
+													<div>
+														<strong>{msg.attachment.name}</strong>
+														<span>
+															PDF document · {fileSize(msg.attachment.size)}
+														</span>
+													</div>
+												</div>
+											) : (
+												<p className="bubble-text">{msg.text}</p>
+											)}
+											<div className="bubble-meta">
+												<time dateTime={msg.timestamp.toISOString()}>
+													{formatTime(msg.timestamp)}
+												</time>
+												{msg.sender === "user" && <Icon name="check" />}
+											</div>
+										</div>
+									</div>
+								))}
+								{isTyping && !isReceiving && (
+									<div className="typing-bubble" aria-hidden="true">
+										<span />
+										<span />
+										<span />
+									</div>
+								)}
+								{messages.length === 1 && !selectedFile && (
+									<button
+										type="button"
+										className="drop-prompt"
+										onClick={() => fileInputRef.current?.click()}
+									>
+										<span className="drop-icon">
+											<Icon name="file" />
+											<span>+</span>
+										</span>
+										<strong>Your career, in one PDF.</strong>
+										<span>Drop it here or click to attach</span>
+									</button>
+								)}
+							</div>
+							<div className="chat-composer">
+								{fileError && (
+									<p className="file-error" role="alert">
+										{fileError}
+									</p>
+								)}
+								{selectedFile && (
+									<div className="selected-file">
+										<span className="document-icon">
+											<Icon name="file" />
+										</span>
+										<div>
+											<strong>{selectedFile.name}</strong>
+											<span>
+												PDF · {fileSize(selectedFile.size)} · Ready to roast
+											</span>
+										</div>
+										<button
+											type="button"
+											className="icon-button"
+											onClick={() => setSelectedFile(null)}
+											aria-label="Remove selected PDF"
+										>
+											<Icon name="close" />
+										</button>
+									</div>
+								)}
+								<input
+									ref={fileInputRef}
+									type="file"
+									accept=".pdf,application/pdf"
+									className="sr-only"
+									tabIndex={-1}
+									aria-label="Choose your CV PDF"
+									onChange={(event) => {
+										selectFile(event.target.files?.[0]);
+										event.target.value = "";
+									}}
+								/>
+								<div className="composer-row">
+									<button
+										type="button"
+										className="icon-button attach-button"
+										onClick={() => fileInputRef.current?.click()}
+										disabled={isTyping}
+										aria-label="Attach CV"
+									>
+										<Icon name="plus" />
+									</button>
+									<button
+										type="button"
+										className="composer-placeholder"
+										onClick={() => fileInputRef.current?.click()}
+										disabled={isTyping}
+									>
+										{isTyping
+											? "Karen is reviewing…"
+											: selectedFile
+												? "Ready when you are…"
+												: "Attach your CV…"}
+									</button>
+									<button
+										type="button"
+										className="send-button"
+										ref={sendRef}
+										onClick={handleSubmit}
+										disabled={!selectedFile || isTyping}
+										aria-label="Send CV to Karen"
+									>
+										<Icon name="arrow" />
+									</button>
+								</div>
+								<output className="composer-hint">
+									{isTyping
+										? "Preparing your character development."
+										: "PDF only · 5 MB max · Ego not included"}
+								</output>
+							</div>
+							<div className="phone-home-bar" aria-hidden="true" />
+							{isDragging && (
+								<div className="drop-overlay">
+									<Icon name="upload" />
+									<strong>Drop it like it’s hot.</strong>
+									<span>Karen will take it from here.</span>
+								</div>
+							)}
+						</div>
+					</section>
+					<div className="rejection-stamp">
+						<Icon name="spark" />
+						<strong>100%</strong>
+						<span>rejection rate</span>
+					</div>
+					<p className="phone-caption">
+						<span className="status-dot" />{" "}
+						{isTyping
+							? "Your qualifications are being questioned."
+							: hasRoast
+								? "Application reviewed. Ego, pending recovery."
+								: "A very real phone. A very fake opportunity."}
+					</p>
+				</div>
+			</main>
+			<footer className="site-footer">
+				<span>A little less corporate. A lot more personal.</span>
 				<a
 					href="https://github.com/DanteDeLordran"
 					target="_blank"
 					rel="noopener noreferrer"
-					className="dev-badge"
-					title="Built by DanteDeLordran"
 				>
-					<svg
-						width="14"
-						height="14"
-						viewBox="0 0 24 24"
-						fill="currentColor"
-						aria-hidden="true"
-					>
-						<path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-					</svg>
-					<span>Built by DanteDeLordran</span>
+					An unfortunate idea by <strong>DanteDeLordran</strong>{" "}
+					<Icon name="arrow" />
 				</a>
-
-				<div className="layout">
-					{/* LEFT */}
-					<div className="hr-panel">
-						<div className="hr-id-card">
-							<div className="hr-id-card-logo">Acme Corp HR</div>
-							<div className="hr-id-card-avatar">S</div>
-							<div className="hr-id-card-name">Sarah Chen</div>
-							<div className="hr-id-card-title">
-								<span className="hr-status-dot" />
-								Senior Recruiter
-							</div>
-							<div className="hr-divider" />
-							<div className="hr-stat">
-								<span className="hr-stat-label">CVs reviewed</span>
-								<span className="hr-stat-val">1,847</span>
-							</div>
-							<div className="hr-stat">
-								<span className="hr-stat-label">Hired</span>
-								<span className="hr-stat-val">12</span>
-							</div>
-							<div className="hr-stat">
-								<span className="hr-stat-label">Response time</span>
-								<span className="hr-stat-val">~3 weeks</span>
-							</div>
-						</div>
-						<div className="hr-mood">
-							<div className="hr-mood-label">Current patience level</div>
-							<div className="hr-mood-track">
-								<div className="hr-mood-fill" />
-							</div>
-							<div className="hr-mood-caption">Dangerously low</div>
-						</div>
-					</div>
-
-					{/* CENTER — Phone */}
-					<div className="phone-container">
-						<div className="phone-shadow" />
-						<div className="phone-frame">
-							<div className="phone-notch" />
-							<div className="phone-statusbar">
-								<span>9:41</span>
-								<div
-									style={{ display: "flex", alignItems: "center", gap: "5px" }}
-								>
-									<svg
-										width="13"
-										height="10"
-										viewBox="0 0 24 16"
-										fill="currentColor"
-										aria-hidden="true"
-									>
-										<path d="M12 0C7.31 0 3.07 1.86 0 4.88L2.12 7C4.6 4.55 7.98 3 12 3s7.4 1.55 9.88 4L24 4.88C20.93 1.86 16.69 0 12 0z" />
-										<path d="M12 6c-3.42 0-6.5 1.39-8.74 3.63L5.4 11.75C7.09 10.04 9.42 9 12 9s4.91 1.04 6.6 2.75l2.14-2.12C18.5 7.39 15.42 6 12 6z" />
-										<path d="M12 12c-1.73 0-3.28.7-4.42 1.84L12 18l4.42-4.16C15.28 12.7 13.73 12 12 12z" />
-									</svg>
-									<div className="phone-battery" />
-								</div>
-							</div>
-
-							<div className="phone-inner">
-								<div className="chat-header">
-									<button
-										type="button"
-										className="chat-header-back"
-										aria-label="Back"
-									>
-										<svg
-											width="17"
-											height="17"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-											aria-hidden="true"
-										>
-											<path
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												strokeWidth={2}
-												d="M15 19l-7-7 7-7"
-											/>
-										</svg>
-									</button>
-									<div className="chat-header-avatar">
-										S<div className="chat-header-online" />
-									</div>
-									<div className="chat-header-info">
-										<div className="chat-header-name">Sarah from HR</div>
-										<div className="chat-header-sub">Reviewing now</div>
-									</div>
-									<button
-										type="button"
-										className="chat-header-call"
-										aria-label="Call"
-									>
-										<svg
-											width="17"
-											height="17"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-											aria-hidden="true"
-										>
-											<path
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												strokeWidth={2}
-												d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-											/>
-										</svg>
-									</button>
-								</div>
-
-								<div className="chat-messages-wrapper">
-									<div className="chat-messages">
-										<div className="date-chip">Today</div>
-										{messages.map((msg) => (
-											<div key={msg.id} className={`bubble-row ${msg.sender}`}>
-												<div className={`bubble ${msg.sender}`}>
-													{msg.text}
-													<span className="bubble-time">
-														{formatTime(msg.timestamp)}
-													</span>
-												</div>
-											</div>
-										))}
-										{isTyping && (
-											<div className="bubble-row hr">
-												<div className="typing-bubble">
-													<div className="typing-dot" />
-													<div className="typing-dot" />
-													<div className="typing-dot" />
-												</div>
-											</div>
-										)}
-										<div ref={messagesEndRef} />
-									</div>
-								</div>
-
-								<div className="chat-input-area">
-									<div className="chat-input-row">
-										<button
-											type="button"
-											className="chat-attach-btn"
-											onClick={() => fileInputRef.current?.click()}
-											aria-label="Attach"
-										>
-											<svg
-												width="15"
-												height="15"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24"
-												aria-hidden="true"
-											>
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													strokeWidth={2}
-													d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-												/>
-											</svg>
-										</button>
-										<input
-											ref={fileInputRef}
-											type="file"
-											accept=".pdf,application/pdf"
-											onChange={handleFileSelect}
-											style={{ display: "none" }}
-										/>
-										<div className="chat-input-field">
-											{selectedFile ? (
-												<div className="chat-file-row">
-													<svg
-														width="12"
-														height="12"
-														fill="none"
-														stroke="var(--accent)"
-														viewBox="0 0 24 24"
-														style={{ flexShrink: 0 }}
-														aria-hidden="true"
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															strokeWidth={2}
-															d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-														/>
-													</svg>
-													<span className="chat-file-name">
-														{selectedFile.name}
-													</span>
-													<button
-														type="button"
-														className="chat-file-clear"
-														onClick={() => setSelectedFile(null)}
-													>
-														<svg
-															width="11"
-															height="11"
-															fill="none"
-															stroke="currentColor"
-															viewBox="0 0 24 24"
-															aria-hidden="true"
-														>
-															<path
-																strokeLinecap="round"
-																strokeLinejoin="round"
-																strokeWidth={2}
-																d="M6 18L18 6M6 6l12 12"
-															/>
-														</svg>
-													</button>
-												</div>
-											) : (
-												<span className="chat-placeholder">
-													Attach your CV to proceed...
-												</span>
-											)}
-										</div>
-										<button
-											type="button"
-											className="chat-send-btn"
-											onClick={handleSubmit}
-											disabled={!selectedFile || isTyping}
-											aria-label="Send"
-										>
-											<svg
-												width="15"
-												height="15"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24"
-												aria-hidden="true"
-											>
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													strokeWidth={2}
-													d="M5 12h14M12 5l7 7-7 7"
-												/>
-											</svg>
-										</button>
-									</div>
-								</div>
-							</div>
-							<div className="phone-home-bar" />
-						</div>
-					</div>
-
-					{/* RIGHT */}
-					<div className="status-panel">
-						<div className="stat-card">
-							<div className="stat-label">CVs in queue</div>
-							<div className="stat-value">247</div>
-							<div className="stat-sub">+12 since yesterday</div>
-						</div>
-						<div className="reject-meter">
-							<div className="reject-label">Rejection probability</div>
-							<div className="reject-track">
-								<div className="reject-fill" />
-							</div>
-							<div className="reject-labels">
-								<span>Hired</span>
-								<span>82%</span>
-								<span>Rejected</span>
-							</div>
-						</div>
-						<div className="activity">
-							<div className="activity-label">Recent activity</div>
-							<div className="activity-item">
-								<div className="a-dot r" />
-								<span>John D. — rejected after 2s</span>
-							</div>
-							<div className="activity-item">
-								<div className="a-dot r" />
-								<span>Maria K. — "not a culture fit"</span>
-							</div>
-							<div className="activity-item">
-								<div className="a-dot g" />
-								<span>Alex T. — advanced to ghost</span>
-							</div>
-							<div className="activity-item">
-								<div className="a-dot r" />
-								<span>Sam R. — overqualified</span>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
+			</footer>
 		</div>
 	);
 }
