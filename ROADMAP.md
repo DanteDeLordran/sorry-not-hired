@@ -1,48 +1,64 @@
 # SorryNotHired Roadmap
 
-Last updated: October 21, 2026.
+Last updated: October 26, 2026.
 
-## Current Status — 1.0.0
+## Direction
 
-The CV-to-roast flow is implemented and verified with automated tests and local Docker checks. Both packages are version `1.0.0`. Production deployment configuration is available for Caddy and Coolify; live-server verification is still pending.
+Grow SorryNotHired into a public entertainment app. The next release will let people share their chat with Karen through a link to a read-only page.
 
-### Core Experience
+Version `1.0.0` is the current baseline. The milestones below describe planned work; they do not change the application version or commit to release dates.
 
-- [x] Upload a PDF CV and extract its text as Markdown.
-- [x] Reject invalid, unreadable, oversized, and non-CV files.
-- [x] Send the full accepted CV to an OpenAI-compatible model API.
-- [x] Stream one Karen roast into a single chat bubble, ending with `sorry, not hired`.
-- [x] Preserve JSON responses for API clients that do not request streaming.
-- [x] Support DeepSeek, external OpenAI-compatible providers, and optional bundled Ollama.
-- [x] Handle unavailable or non-responding providers, generation timeouts, and interrupted streams with fallback messages.
-- [x] Provide a responsive React UI with PDF drag-and-drop, file validation, typing feedback, and chat reset.
-- [x] Add Karen artwork, favicon assets, and application metadata.
+## 1.0.0 — Current Baseline
 
-### Reliability And Deployment
+The core experience is implemented: PDF CV upload and validation, text extraction, a streamed Karen roast, and fallback messages when generation fails. The app supports OpenAI-compatible providers, a responsive chat interface, bounded processing, and Docker deployment through Caddy or Coolify.
 
-- [x] Isolate PDF parsing in child processes with page, text, memory, CPU, and wall-clock limits.
-- [x] Kill and reap parser processes on timeout or cancellation without passing API credentials to them.
-- [x] Bound model output, generation time, retries, and concurrent requests.
-- [x] Apply per-client proxy rate limits and per-client/global concurrency limits, including active streams.
-- [x] Run application containers as non-root with read-only filesystems and bounded temporary storage.
-- [x] Add security/cache headers and trusted-proxy HTTPS enforcement with HSTS.
-- [x] Provide local Compose, a Caddy HTTPS overlay, and a standalone Coolify/Traefik Compose file.
-- [x] Document provider settings, production deployment, updates, and rollback steps in [README.md](README.md).
-- [x] Verify backend behavior, frontend stream parsing, container startup, API forwarding, streaming, and proxy controls.
-- [x] Add an opt-in DeepSeek model benchmark for latency and output comparison.
+There is no database or persistent conversation storage. Uploaded PDFs are temporary and deleted after processing; chat state lives in the current browser page.
 
-### Production Verification
+Automated tests and local Docker checks cover the core flow. Public-server verification remains pending:
 
 - [ ] Deploy the selected Git revision to the target production server.
-- [ ] Verify public DNS, certificate issuance, HTTP-to-HTTPS redirects, HSTS, and container health on that server.
-- [ ] Upload a representative CV through the public domain and confirm streaming with the configured provider.
+- [ ] Verify public DNS, certificates, HTTP-to-HTTPS redirects, HSTS, and container health.
+- [ ] Upload a representative CV through the public domain and confirm provider generation and streaming.
 
-See [the Coolify deployment guide](README.md#coolify-single-compose-file) for the single-file setup and verification commands.
+See the [deployment guide](README.md#coolify-single-compose-file) for setup and verification commands.
 
-## Post-Production Features
+## 1.1.0 — Read-Only Chat Sharing
 
-- [ ] Share conversations.
-- [ ] Store uploaded PDFs for analytics.
-- [ ] Store chat history for analytics.
+**Goal:** Let someone share a completed chat through a unique link that another person can open without uploading a CV or generating a new roast.
 
-There is currently no database or persistent conversation storage. Uploaded PDFs are temporary and deleted after processing; chat state lives in the current browser page.
+### Sharing Experience
+
+- [ ] Add a share action once a roast has finished streaming.
+- [ ] Let the sender review what will be shared and copy its link.
+- [ ] Include the visible chat messages in their original order, preserving the conversation's presentation.
+- [ ] Exclude the PDF, extracted CV text, original filename, and attachment metadata. Represent the upload with a generic “CV uploaded” placeholder.
+- [ ] Keep Karen's roast as written, including any CV details quoted in her response; make that visible in the sharing preview.
+- [ ] Open shared links in a responsive, read-only view with no upload, send, reset, or regeneration controls for that conversation.
+- [ ] Give recipients a way to start their own separate roast.
+
+### Sharing Without Server Storage
+
+- [ ] Generate a self-contained link in the browser, carrying the shared messages in the URL fragment rather than a server-side snapshot.
+- [ ] Reconstruct and display the shared chat entirely in the recipient's browser, without sending the message payload to the backend or calling the model API.
+- [ ] Define and verify payload and URL-length limits for supported browsers and sharing channels. If a chat is too large, explain the limit without silently truncating it.
+- [ ] Handle invalid, damaged, or unsupported links with a clear error state.
+- [ ] Keep shared chats and ordinary chat history out of server storage. Retaining PDFs or conversations for analytics is outside this roadmap.
+
+A shared link carries the conversation itself. Anyone with the link can read that content; read-only viewing does not verify its authorship or make the link revocable.
+
+### Release Criteria
+
+- [ ] A copied link opens the same shared messages in a fresh browser session after the sender closes or resets their original chat.
+- [ ] Recipients can read the conversation on desktop and mobile without changing it or triggering generation.
+- [ ] Shared payloads exclude the PDF, extracted CV text, filename, and attachment metadata, and are not sent to or stored by the backend.
+- [ ] Link decoding enforces size limits and renders message content safely as text.
+- [ ] Verify link creation, copy feedback, browser reconstruction, and invalid or oversized link handling.
+- [ ] Document how sharing works and its content and link-length limits.
+
+## 1.2.0 — Open
+
+Define this milestone after feedback from `1.1.0` shows what people need from sharing. No features or release date are committed yet.
+
+## Beyond 1.2.0 — Open
+
+Choose later milestones as the public app develops. Keep the roadmap focused on confirmed priorities rather than speculative features.
