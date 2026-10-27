@@ -26,34 +26,39 @@ See the [deployment guide](README.md#coolify-single-compose-file) for setup and 
 
 **Goal:** Let someone share a completed chat through a unique link that another person can open without uploading a CV or generating a new roast.
 
+The sharing implementation is available on the `1.1.0` development branch. Package versions remain `1.0.0` while release verification continues.
+
 ### Sharing Experience
 
-- [ ] Add a share action once a roast has finished streaming.
-- [ ] Let the sender review what will be shared and copy its link.
-- [ ] Include the visible chat messages in their original order, preserving the conversation's presentation.
-- [ ] Exclude the PDF, extracted CV text, original filename, and attachment metadata. Represent the upload with a generic “CV uploaded” placeholder.
-- [ ] Keep Karen's roast as written, including any CV details quoted in her response; make that visible in the sharing preview.
-- [ ] Open shared links in a responsive, read-only view with no upload, send, reset, or regeneration controls for that conversation.
-- [ ] Give recipients a way to start their own separate roast.
+- [x] Add a share action once a roast has finished streaming.
+- [x] Let the sender review what will be shared and copy its link.
+- [x] Include the visible chat messages in their original order, preserving the conversation's presentation.
+- [x] Exclude the PDF, extracted CV text, original filename, and attachment metadata. Represent the upload with a generic “CV uploaded” placeholder.
+- [x] Keep Karen's roast as written, including any CV details quoted in her response; make that visible in the sharing preview.
+- [x] Open shared links in a responsive, read-only view with no upload, send, reset, or regeneration controls for that conversation.
+- [x] Give recipients a way to start their own separate roast.
 
 ### Sharing Without Server Storage
 
-- [ ] Generate a self-contained link in the browser, carrying the shared messages in the URL fragment rather than a server-side snapshot.
-- [ ] Reconstruct and display the shared chat entirely in the recipient's browser, without sending the message payload to the backend or calling the model API.
-- [ ] Define and verify payload and URL-length limits for supported browsers and sharing channels. If a chat is too large, explain the limit without silently truncating it.
-- [ ] Handle invalid, damaged, or unsupported links with a clear error state.
-- [ ] Keep shared chats and ordinary chat history out of server storage. Retaining PDFs or conversations for analytics is outside this roadmap.
+- [x] Generate a self-contained link in the browser, carrying the shared messages in the URL fragment rather than a server-side snapshot.
+- [x] Reconstruct and display the shared chat entirely in the recipient's browser, without sending the message payload to the backend or calling the model API.
+- [x] Enforce an 8,000-character URL limit, a 64 KiB decoded JSON limit, 100 messages, and 16,000 JavaScript string characters per message. Explain oversized chats without silently truncating them.
+- [x] Handle invalid, damaged, or unsupported links with a clear error state.
+- [x] Keep shared chats and ordinary chat history out of server storage. Retaining PDFs or conversations for analytics is outside this roadmap.
 
 A shared link carries the conversation itself. Anyone with the link can read that content; read-only viewing does not verify its authorship or make the link revocable.
 
 ### Release Criteria
 
-- [ ] A copied link opens the same shared messages in a fresh browser session after the sender closes or resets their original chat.
-- [ ] Recipients can read the conversation on desktop and mobile without changing it or triggering generation.
-- [ ] Shared payloads exclude the PDF, extracted CV text, filename, and attachment metadata, and are not sent to or stored by the backend.
-- [ ] Link decoding enforces size limits and renders message content safely as text.
-- [ ] Verify link creation, copy feedback, browser reconstruction, and invalid or oversized link handling.
-- [ ] Document how sharing works and its content and link-length limits.
+- [x] A copied link opens the same shared messages in a fresh browser session after the sender closes or resets their original chat.
+- [x] Recipients can read the conversation on desktop and mobile without changing it or triggering generation.
+- [x] Shared payloads exclude the PDF, extracted CV text, filename, and attachment metadata, and are not sent to or stored by the backend.
+- [x] Link decoding enforces size limits and renders message content safely as text.
+- [x] Verify link creation, copy feedback, browser reconstruction, and invalid or oversized link handling.
+- [x] Document how sharing works and its content and link-length limits.
+- [ ] Verify link handling in Firefox and Safari and through the intended messaging and social sharing channels before release.
+
+Local verification covers Bun regression tests and Chromium browser checks at desktop and mobile viewport sizes. Browser checks use a mocked roast response; live-provider and production-domain checks remain separate release work.
 
 ## 1.2.0 — Open
 
