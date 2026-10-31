@@ -1,6 +1,6 @@
 # SorryNotHired Roadmap
 
-Last updated: October 26, 2026.
+Last updated: October 30, 2026.
 
 ## Direction
 
@@ -26,7 +26,7 @@ See the [deployment guide](README.md#coolify-single-compose-file) for setup and 
 
 **Goal:** Let someone share a completed chat through a unique link that another person can open without uploading a CV or generating a new roast.
 
-The sharing implementation is available on the `1.1.0` development branch. Package versions remain `1.0.0` while release verification continues.
+The sharing implementation is merged into the `dev` branch. Package versions remain `1.0.0` while release verification continues.
 
 ### Sharing Experience
 

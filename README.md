@@ -14,7 +14,7 @@ Version `1.0.0` for both the frontend and backend. The core flow works end to en
 
 For production on Coolify, start with [Coolify: Single Compose File](#coolify-single-compose-file). Container builds, health checks, streaming, request limits, and trusted-proxy HTTPS behavior have been verified locally; public DNS, certificate issuance, and the configured provider still need verification on your deployment server.
 
-The `1.1.0` development branch adds read-only chat sharing through self-contained links, without server-side conversation storage. Both package versions remain `1.0.0` until the next release. PDF and chat history retention for analytics are outside the roadmap. See [ROADMAP.md](ROADMAP.md) for scope and remaining release checks.
+The `dev` branch adds read-only chat sharing through self-contained links, without server-side conversation storage. Both package versions remain `1.0.0` until the next release. PDF and chat history retention for analytics are outside the roadmap. See [ROADMAP.md](ROADMAP.md) for scope and remaining release checks.
 
 ## Stack
 
@@ -28,7 +28,7 @@ The `1.1.0` development branch adds read-only chat sharing through self-containe
 ## How It Works
 
 1. The frontend sends a PDF as `multipart/form-data`.
-2. The backend checks the upload and extracts Markdown from the PDF.
+2. The backend checks the upload and extracts Markdown from the PDF. A keyword check then rejects text that does not look like a CV. It recognizes English and Spanish, so CVs in other languages may be rejected.
 3. The extracted CV text is sent to the configured LLM.
 4. Karen's response streams into a single chat bubble, with any paragraphs kept inside it. The backend normalizes the final line to exactly `sorry, not hired`. API clients can still request a JSON response.
 
@@ -51,7 +51,7 @@ Anyone with the full link can read or modify its contents. Read-only applies to 
 
 ## Requirements
 
-- Python 3.13+
+- Python 3.14
 - [uv](https://docs.astral.sh/uv/)
 - [Bun](https://bun.sh/)
 - An OpenAI-compatible model endpoint
@@ -64,7 +64,7 @@ Anyone with the full link can read or modify its contents. Read-only applies to 
 ```bash
 cd backend
 uv sync
-fastapi dev src/main.py
+uv run fastapi dev src/main.py
 ```
 
 The API runs at `http://localhost:8000`.
@@ -251,9 +251,9 @@ On the server, download the model once:
 mkdir -p /data/sorrynotnhired/models
 cd /data/sorrynotnhired/models
 
-pip install huggingface_hub
-huggingface-cli download \
-  HauhauCS/Qwen3.5-2B-Uncensored-GGUF \
+pip install -U huggingface_hub
+hf download \
+  HauhauCS/Qwen3.5-2B-Uncensored-HauhauCS-Aggressive \
   Qwen3.5-2B-Uncensored-HauhauCS-Aggressive-Q8_0.gguf \
   --local-dir .
 ```
@@ -336,7 +336,7 @@ Backend:
 ```bash
 cd backend
 uv sync
-fastapi dev src/main.py
+uv run fastapi dev src/main.py
 ```
 
 Checks from the repository root:
@@ -348,7 +348,7 @@ bun run --filter frontend test
 bun run build
 ```
 
-Docker-level checks exercise rootless startup, PDF extraction, unbuffered streaming, rate/concurrency limits, CSP inheritance, and trusted-proxy HTTPS handling against a local mock model:
+Docker-level checks exercise rootless startup, link-preview URLs, PDF extraction, unbuffered streaming, rate/concurrency limits, CSP inheritance, and trusted-proxy HTTPS handling against a local mock model:
 
 ```bash
 DOCKER_IMAGE_BACKEND=sorry-not-hired-check-backend DOCKER_IMAGE_FRONTEND=sorry-not-hired-check-frontend TAG=security \
@@ -379,9 +379,13 @@ sorry-not-hired/
         health/     liveness endpoint
       core/         LLM streaming, settings, and isolated PDF parser
       main.py       FastAPI app
+    scripts/        DeepSeek model benchmark
+    tests/          backend and Docker-level checks
   frontend/
     src/
-      components/   main chat UI
+      components/   chat, share dialog, and shared chat views
+      lib/          roast stream parsing and share-link encoding
+  deploy/           Caddy HTTPS ingress configuration
   compose.yml       app, frontend, and Ollama services
   compose.production.yml  optional Caddy HTTPS ingress
   compose.coolify.yml  standalone Coolify/Traefik production deployment
