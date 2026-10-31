@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
+import { fileSize, type Message } from "../lib/chat";
+import {
+	ChatShareError,
+	createSharedChat,
+	type SharedChat,
+} from "../lib/chatShare";
 import { readRoastStream } from "../lib/roastStream";
 import { Icon } from "./Icon";
+import { MessageBubble } from "./MessageBubble";
 import { PhoneClock } from "./PhoneClock";
-
-interface Message {
-	id: string;
-	text: string;
-	sender: "user" | "hr";
-	timestamp: Date;
-	attachment?: { name: string; size: number };
-}
+import { ShareDialog } from "./ShareDialog";
 
 const greeting = (): Message => ({
 	id: "welcome",
@@ -30,12 +30,6 @@ const ERROR_REPLIES: Record<number, string> = {
 	504: "Even I need a coffee break. Try sending that again.",
 };
 
-function fileSize(bytes: number) {
-	return bytes < 1024 * 1024
-		? `${Math.max(1, Math.round(bytes / 1024))} KB`
-		: `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 export function ChatPhone() {
 	const [messages, setMessages] = useState<Message[]>(() => [greeting()]);
 	const [isTyping, setIsTyping] = useState(false);
@@ -43,6 +37,8 @@ export function ChatPhone() {
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [fileError, setFileError] = useState("");
 	const [isDragging, setIsDragging] = useState(false);
+	const [sharePreview, setSharePreview] = useState<SharedChat | null>(null);
+	const [shareError, setShareError] = useState("");
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const chatRef = useRef<HTMLDivElement>(null);
 	const phoneRef = useRef<HTMLElement>(null);
@@ -87,6 +83,7 @@ export function ChatPhone() {
 
 	const handleSubmit = async () => {
 		if (!selectedFile || isTyping || requestRef.current) return;
+		setShareError("");
 		const formData = new FormData();
 		formData.append("file", selectedFile);
 		setMessages((current) => [
@@ -151,17 +148,25 @@ export function ChatPhone() {
 		setSelectedFile(null);
 		setFileError("");
 		followChatRef.current = true;
+		setShareError("");
 	};
-	const formatTime = (date: Date) =>
-		date.toLocaleTimeString("en-US", {
-			hour: "numeric",
-			minute: "2-digit",
-			hour12: false,
-		});
 	const hasRoast = messages.some(
 		(message) =>
 			message.sender === "hr" && message.text.endsWith("sorry, not hired"),
 	);
+	const openShare = () => {
+		if (isTyping || !hasRoast) return;
+		try {
+			setShareError("");
+			setSharePreview(createSharedChat(messages));
+		} catch (error) {
+			setShareError(
+				error instanceof ChatShareError
+					? error.message
+					: "Couldn’t prepare this chat for sharing. Please try again.",
+			);
+		}
+	};
 
 	return (
 		<div className="app-shell">
@@ -311,6 +316,18 @@ export function ChatPhone() {
 											: "Online. Unfortunately."}
 									</p>
 								</div>
+								{hasRoast && (
+									<button
+										className="icon-button share-button"
+										type="button"
+										onClick={openShare}
+										disabled={isTyping}
+										title="Share chat"
+										aria-label="Share chat"
+									>
+										<Icon name="share" />
+									</button>
+								)}
 								<button
 									className="icon-button reset-button"
 									type="button"
@@ -348,32 +365,8 @@ export function ChatPhone() {
 								<div className="date-chip">
 									Today · A fresh start. Allegedly.
 								</div>
-								{messages.map((msg) => (
-									<div key={msg.id} className={`bubble-row ${msg.sender}`}>
-										<div className={`bubble ${msg.sender}`}>
-											{msg.attachment ? (
-												<div className="attachment-message">
-													<span className="document-icon">
-														<Icon name="file" />
-													</span>
-													<div>
-														<strong>{msg.attachment.name}</strong>
-														<span>
-															PDF document · {fileSize(msg.attachment.size)}
-														</span>
-													</div>
-												</div>
-											) : (
-												<p className="bubble-text">{msg.text}</p>
-											)}
-											<div className="bubble-meta">
-												<time dateTime={msg.timestamp.toISOString()}>
-													{formatTime(msg.timestamp)}
-												</time>
-												{msg.sender === "user" && <Icon name="check" />}
-											</div>
-										</div>
-									</div>
+								{messages.map((message) => (
+									<MessageBubble key={message.id} message={message} />
 								))}
 								{isTyping && !isReceiving && (
 									<div className="typing-bubble" aria-hidden="true">
@@ -498,6 +491,11 @@ export function ChatPhone() {
 								? "Application reviewed. Ego, pending recovery."
 								: "A very real phone. A very fake opportunity."}
 					</p>
+					{shareError && (
+						<p className="share-error" role="alert">
+							{shareError}
+						</p>
+					)}
 				</div>
 			</main>
 			<footer className="site-footer">
@@ -511,6 +509,12 @@ export function ChatPhone() {
 					<Icon name="arrow" />
 				</a>
 			</footer>
+			{sharePreview && (
+				<ShareDialog
+					chat={sharePreview}
+					onClose={() => setSharePreview(null)}
+				/>
+			)}
 		</div>
 	);
 }

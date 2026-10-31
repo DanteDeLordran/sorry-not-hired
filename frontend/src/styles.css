@@ -1155,6 +1155,160 @@ h1 em {
 	}
 }
 
+.share-button {
+	color: var(--coral);
+}
+.share-dialog {
+	width: min(620px, calc(100% - 32px));
+	max-height: calc(100dvh - 32px);
+	padding: 24px;
+	border: 1px solid var(--line);
+	border-radius: 20px;
+	background: var(--paper);
+	color: var(--ink);
+	box-shadow: 0 24px 80px #292b2633;
+}
+.share-dialog[open] {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+.share-dialog::backdrop {
+	background: #292b2670;
+	backdrop-filter: blur(3px);
+}
+.share-dialog-heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-shrink: 0;
+}
+.share-dialog-heading h2 {
+	margin: 0;
+	font-family: var(--serif);
+	font-size: 32px;
+	font-weight: 400;
+}
+.share-description,
+.share-copy-status,
+.shared-note {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.7;
+	color: #686b62;
+}
+.share-preview {
+	min-height: 80px;
+	max-height: 38svh;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 16px;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	background: #faf9f5;
+}
+.share-preview .bubble-row:last-child,
+.shared-messages .bubble-row:last-child {
+	margin-bottom: 0;
+}
+.share-link-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	flex-shrink: 0;
+}
+.share-link-controls label {
+	font-size: 12px;
+	font-weight: 550;
+}
+.share-link-controls textarea {
+	width: 100%;
+	resize: none;
+	padding: 10px 12px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: #faf9f5;
+	color: #5d6156;
+	font: inherit;
+	font-size: 12px;
+	overflow-wrap: anywhere;
+}
+.share-link-controls textarea:focus-visible {
+	outline: 3px solid var(--coral);
+	outline-offset: 2px;
+}
+.share-copy-button {
+	width: 100%;
+	margin: 0;
+	padding: 12px 20px;
+}
+.share-copy-status {
+	min-height: 21px;
+}
+.share-error {
+	margin: 0;
+	padding: 12px;
+	border-radius: 8px;
+	background: #f9e8df;
+	color: #a74930;
+	font-size: 13px;
+	line-height: 1.6;
+}
+.shared-label {
+	max-width: 110px;
+	font-size: 11px;
+	line-height: 1.6;
+	text-align: right;
+	color: #686b62;
+}
+.shared-page .site-header {
+	gap: 12px;
+}
+.shared-main {
+	max-width: 640px;
+	margin: 0 auto;
+	padding: 48px 0 64px;
+}
+.shared-main h1 {
+	margin: 18px 0;
+	font-size: clamp(42px, 7vw, 64px);
+	letter-spacing: -1.5px;
+	line-height: 1.05;
+}
+.shared-intro,
+.shared-error,
+.shared-status {
+	margin-bottom: 30px;
+}
+.shared-intro > p,
+.shared-error > p {
+	color: #686b62;
+	font-size: 14px;
+	line-height: 1.7;
+}
+.shared-conversation {
+	overflow: hidden;
+	border: 1px solid var(--line);
+	border-radius: 20px;
+	background: #faf9f5;
+}
+.shared-conversation .chat-header {
+	padding: 18px;
+}
+.shared-conversation .chat-header > svg {
+	color: var(--coral);
+}
+.shared-messages {
+	padding: 20px 16px;
+}
+.shared-note {
+	margin-top: 18px;
+}
+.shared-start {
+	margin-top: 24px;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
