@@ -39,6 +39,17 @@ CV_KEYWORDS = (
     "bachelor",
     "master",
     "phd",
+    "experiencia",
+    "educaci[oó]n",
+    "formaci[oó]n",
+    "estudios",
+    "habilidades",
+    "competencias",
+    "conocimientos",
+    "idiomas",
+    "perfil",
+    "profesional",
+    "universidad",
 )
 MIN_CV_KEYWORD_HITS = 2
 
