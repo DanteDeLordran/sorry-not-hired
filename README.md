@@ -14,7 +14,7 @@ Version `1.0.0` for both the frontend and backend. The core flow works end to en
 
 For production on Coolify, start with [Coolify: Single Compose File](#coolify-single-compose-file). Container builds, health checks, streaming, request limits, and trusted-proxy HTTPS behavior have been verified locally; public DNS, certificate issuance, and the configured provider still need verification on your deployment server.
 
-The `dev` branch adds read-only chat sharing through self-contained links, without server-side conversation storage. Both package versions remain `1.0.0` until the next release. PDF and chat history retention for analytics are outside the roadmap. See [ROADMAP.md](ROADMAP.md) for scope and remaining release checks.
+Finished roasts can be shared as read-only letters through self-contained links, without server-side conversation storage. Both package versions remain `1.0.0` until the next release. PDF and chat history retention for analytics are outside the roadmap. See [ROADMAP.md](ROADMAP.md) for scope and remaining release checks.
 
 ## Stack
 
