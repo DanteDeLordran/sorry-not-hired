@@ -6,6 +6,7 @@ type IconName =
 	| "reset"
 	| "check"
 	| "spark"
+	| "share"
 	| "plus";
 
 const paths: Record<IconName, string> = {
@@ -16,6 +17,8 @@ const paths: Record<IconName, string> = {
 	reset: "M3 10a9 9 0 1 1 2 8M3 4v6h6",
 	check: "m4 12 5 5L20 6",
 	spark: "M12 2v20M3.34 7l17.32 10M3.34 17 20.66 7",
+	share:
+		"M10 13a5 5 0 0 0 7 .1l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7M14 11a5 5 0 0 0-7-.1l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7",
 	plus: "M12 5v14M5 12h14",
 };
 

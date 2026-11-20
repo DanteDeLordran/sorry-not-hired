@@ -10,6 +10,10 @@ A steady grid allows small differences to become expressive. Quiet serif heading
 
 Humor emerges from restraint. A refusal, an indifferent stare, a small warning: each is a complete thought. The final composition should feel like the product of deep expertise and countless refinements, with nothing added merely to fill the silence.
 
+## Decision
+
+**Raised brow** is the chosen mark. `../public/favicon.svg` is the same file as `favicon-options/raised-brow.svg`.
+
 ## Candidates
 
 1. **Hard no** — a direct rejection cross; the clearest tiny-size silhouette.
@@ -19,4 +23,4 @@ Humor emerges from restraint. A refusal, an indifferent stare, a small warning: 
 5. **Denied** — a barred circle, like an application stamped closed.
 6. **Raised brow** — a skeptical expression with a little more personality.
 
-The comparison sheet is `../public/favicon-options.png`. Ready-to-use vector candidates are in `../public/favicon-options/`; every candidate preserves the existing chat bubble, background shape, and colors.
+The comparison sheet is `favicon-options.png`. Ready-to-use vector candidates are in `favicon-options/`; every candidate preserves the existing chat bubble, background shape, and colors.

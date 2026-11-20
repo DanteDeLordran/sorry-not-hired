@@ -140,6 +140,14 @@ async def check_deployment():
                 ) in response.headers["cache-control"]
             print("PASS: HTML, assets, and API inherit security and cache headers")
 
+            preview = await client.get(
+                url + "/share", headers={"Host": "roast.example.com"}
+            )
+            assert 'content="https://roast.example.com/og-image.png"' in preview.text
+            image = await client.get(url + "/og-image.png")
+            assert image.headers["content-type"] == "image/png"
+            print("PASS: link previews use an absolute image URL for the request host")
+
             timestamps = []
             roast = []
             async with client.stream(

@@ -27,6 +27,11 @@ Education: Bachelor of Computer Science. Skills: Python, SQL and testing.
 Reduced reporting time by 25 percent by automating weekly data imports.
 Project: Built an internal dashboard with Flask and PostgreSQL."""
 
+SPANISH_CV = """Experiencia: Analista de datos, Empresa Ejemplo, 2022-2026.
+Automaticé informes de ventas con Python y SQL, ahorrando 12 horas semanales.
+Habilidades: Python, SQL, Excel y liderazgo estratégico.
+Educación: Grado en Matemáticas, 2022. Resumen: Orientada a resultados."""
+
 
 def make_pdf(pages=1):
     with pymupdf.open() as doc:
@@ -86,6 +91,21 @@ class StalledStream(httpx.AsyncByteStream):
 
     async def aclose(self):
         self.closed = True
+
+
+class CVCheckTests(unittest.TestCase):
+    def test_english_and_spanish_cvs_pass(self):
+        self.assertTrue(chat._looks_like_cv(CV))
+        self.assertTrue(chat._looks_like_cv(SPANISH_CV))
+
+    def test_spanish_accents_are_optional(self):
+        text = "Educación en sistemas. Formación en datos. " + "Proyectos. " * 20
+        self.assertTrue(chat._looks_like_cv(text))
+        self.assertTrue(chat._looks_like_cv(text.replace("ó", "o")))
+
+    def test_other_spanish_documents_are_rejected(self):
+        recipe = "Mezcla la harina y los huevos, hornea media hora y deja enfriar. "
+        self.assertFalse(chat._looks_like_cv(recipe * 5))
 
 
 class PDFTests(unittest.IsolatedAsyncioTestCase):

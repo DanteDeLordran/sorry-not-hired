@@ -14,10 +14,7 @@ Version `1.0.0` for both the frontend and backend. The core flow works end to en
 
 For production on Coolify, start with [Coolify: Single Compose File](#coolify-single-compose-file). Container builds, health checks, streaming, request limits, and trusted-proxy HTTPS behavior have been verified locally; public DNS, certificate issuance, and the configured provider still need verification on your deployment server.
 
-Not done yet (see `ROADMAP.md`):
-
-- shareable conversations
-- PDF and chat history storage for analytics
+The `dev` branch adds read-only chat sharing through self-contained links, without server-side conversation storage. Both package versions remain `1.0.0` until the next release. PDF and chat history retention for analytics are outside the roadmap. See [ROADMAP.md](ROADMAP.md) for scope and remaining release checks.
 
 ## Stack
 
@@ -31,15 +28,30 @@ Not done yet (see `ROADMAP.md`):
 ## How It Works
 
 1. The frontend sends a PDF as `multipart/form-data`.
-2. The backend checks the upload and extracts Markdown from the PDF.
+2. The backend checks the upload and extracts Markdown from the PDF. A keyword check then rejects text that does not look like a CV. It recognizes English and Spanish, so CVs in other languages may be rejected.
 3. The extracted CV text is sent to the configured LLM.
 4. Karen's response streams into a single chat bubble, with any paragraphs kept inside it. The backend normalizes the final line to exactly `sorry, not hired`. API clients can still request a JSON response.
 
 There is no database and no user account system. Uploads use temporary files during processing and are deleted afterwards. Docker stores those temporary files in bounded memory-backed filesystems.
 
+## Sharing A Chat
+
+After a roast finishes, use the link icon in the chat header to open the sharing preview. Review the messages, then choose **Copy link**. If clipboard access is unavailable, select and copy the displayed link manually.
+
+The link opens `/share#v1.<payload>` as a read-only conversation. Recipients can start their own separate roast, but cannot upload, send, reset, or regenerate messages in the shared chat. The link continues to work after the sender resets their chat or closes the page, provided the app remains available and supports the link format.
+
+Sharing happens entirely in the browser:
+
+- The payload contains only message senders, text, and timestamps. Upload messages become a generic **CV uploaded** placeholder; the PDF, original filename, file size, and extracted CV text are excluded. Karen's replies remain as written and may quote details from the CV.
+- The browser compresses the snapshot with gzip, encodes it as Base64url, and places it after `#` in the URL. The recipient's browser decodes it locally. Shared messages are not sent to the backend or model API, and the app does not save them in a database, local storage, or session storage.
+- Links are limited to **8,000 characters**, including the origin and path. Decoded snapshots are limited to **64 KiB of UTF-8 JSON**, **100 messages**, and **16,000 JavaScript string characters per message**. Oversized chats are rejected without truncation. Browsers and messaging apps may impose additional limits; the application limit does not guarantee compatibility with every sharing channel.
+- The browser must support `CompressionStream` and `DecompressionStream` with gzip. Missing support, malformed payloads, and unsupported link versions produce an error message.
+
+Anyone with the full link can read or modify its contents. Read-only applies to the viewing interface; the link is not proof of authorship and cannot be centrally revoked. Compression and encoding do not encrypt it. Social previews use generic app information because the chat payload is not part of the server request.
+
 ## Requirements
 
-- Python 3.13+
+- Python 3.14
 - [uv](https://docs.astral.sh/uv/)
 - [Bun](https://bun.sh/)
 - An OpenAI-compatible model endpoint
@@ -52,7 +64,7 @@ There is no database and no user account system. Uploads use temporary files dur
 ```bash
 cd backend
 uv sync
-fastapi dev src/main.py
+uv run fastapi dev src/main.py
 ```
 
 The API runs at `http://localhost:8000`.
@@ -239,9 +251,9 @@ On the server, download the model once:
 mkdir -p /data/sorrynotnhired/models
 cd /data/sorrynotnhired/models
 
-pip install huggingface_hub
-huggingface-cli download \
-  HauhauCS/Qwen3.5-2B-Uncensored-GGUF \
+pip install -U huggingface_hub
+hf download \
+  HauhauCS/Qwen3.5-2B-Uncensored-HauhauCS-Aggressive \
   Qwen3.5-2B-Uncensored-HauhauCS-Aggressive-Q8_0.gguf \
   --local-dir .
 ```
@@ -324,7 +336,7 @@ Backend:
 ```bash
 cd backend
 uv sync
-fastapi dev src/main.py
+uv run fastapi dev src/main.py
 ```
 
 Checks from the repository root:
@@ -336,7 +348,7 @@ bun run --filter frontend test
 bun run build
 ```
 
-Docker-level checks exercise rootless startup, PDF extraction, unbuffered streaming, rate/concurrency limits, CSP inheritance, and trusted-proxy HTTPS handling against a local mock model:
+Docker-level checks exercise rootless startup, link-preview URLs, PDF extraction, unbuffered streaming, rate/concurrency limits, CSP inheritance, and trusted-proxy HTTPS handling against a local mock model:
 
 ```bash
 DOCKER_IMAGE_BACKEND=sorry-not-hired-check-backend DOCKER_IMAGE_FRONTEND=sorry-not-hired-check-frontend TAG=security \
@@ -367,9 +379,13 @@ sorry-not-hired/
         health/     liveness endpoint
       core/         LLM streaming, settings, and isolated PDF parser
       main.py       FastAPI app
+    scripts/        DeepSeek model benchmark
+    tests/          backend and Docker-level checks
   frontend/
     src/
-      components/   main chat UI
+      components/   chat, share dialog, and shared chat views
+      lib/          roast stream parsing and share-link encoding
+  deploy/           Caddy HTTPS ingress configuration
   compose.yml       app, frontend, and Ollama services
   compose.production.yml  optional Caddy HTTPS ingress
   compose.coolify.yml  standalone Coolify/Traefik production deployment
