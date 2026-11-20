@@ -1,30 +1,41 @@
 import { useEffect, useState } from "react";
+import type { Message } from "../lib/chat";
 import {
 	ChatShareError,
 	readSharedChat,
-	type SharedChat,
 	sharedMessages,
 } from "../lib/chatShare";
+import { letterReplies } from "../lib/letter";
 import { Icon } from "./Icon";
-import { MessageBubble } from "./MessageBubble";
+import { Letter } from "./Letter";
+import { Colophon, Masthead } from "./SiteChrome";
 
 type SharedState =
 	| { status: "loading" }
-	| { status: "ready"; chat: SharedChat }
+	| { status: "ready"; letters: Message[] }
 	| { status: "error"; message: string };
+
+const EMPTY_LINK =
+	"This link doesn’t contain a reply from Karen. Ask the sender for a new link.";
 
 export function SharedChatPage() {
 	const [state, setState] = useState<SharedState>({ status: "loading" });
 
 	useEffect(() => {
-		document.title = "Shared chat — SorryNotHired";
+		document.title = "Shared letter — SorryNotHired";
 		let generation = 0;
 		const load = () => {
 			const current = ++generation;
 			setState({ status: "loading" });
 			readSharedChat(window.location.hash)
 				.then((chat) => {
-					if (current === generation) setState({ status: "ready", chat });
+					if (current !== generation) return;
+					const letters = letterReplies(sharedMessages(chat));
+					setState(
+						letters.length
+							? { status: "ready", letters }
+							: { status: "error", message: EMPTY_LINK },
+					);
 				})
 				.catch((error: unknown) => {
 					if (current === generation) {
@@ -47,19 +58,13 @@ export function SharedChatPage() {
 	}, []);
 
 	return (
-		<div className="app-shell shared-page">
-			<header className="site-header">
-				<a className="wordmark" href="/" aria-label="Sorry, not hired. Home">
-					<img src="/favicon.svg" alt="" width="38" height="38" />
-					<span>
-						sorry, not hired<span className="brand-period">.</span>
-					</span>
-				</a>
-				<span className="shared-label">Shared chat · Read-only</span>
-			</header>
-			<main className="shared-main">
+		<div className="page">
+			<Masthead>
+				<span className="masthead-label">Shared letter · Read-only</span>
+			</Masthead>
+			<main className="shared">
 				{state.status === "loading" ? (
-					<output className="shared-status">Opening your rejection…</output>
+					<output className="letter-status">Opening the letter…</output>
 				) : state.status === "error" ? (
 					<div className="shared-error" role="alert">
 						<h1>That link didn’t make the cut.</h1>
@@ -67,47 +72,25 @@ export function SharedChatPage() {
 					</div>
 				) : (
 					<>
-						<div className="shared-intro">
-							<div className="eyebrow">
-								An application. An unfortunate reply.
-							</div>
-							<h1>A rejection worth sharing.</h1>
-							<p>Someone met Karen. Here’s how it went.</p>
-						</div>
-						<section
-							className="shared-conversation"
-							aria-label="Shared conversation with Karen"
-						>
-							<div className="chat-header">
-								<img
-									className="chat-avatar"
-									src="/karen.svg"
-									alt=""
-									width="43"
-									height="43"
-								/>
-								<div className="chat-header-info">
-									<h2>Karen from HR</h2>
-									<p>A shared copy. The verdict stands.</p>
-								</div>
-								<Icon name="share" />
-							</div>
-							<div className="shared-messages">
-								{sharedMessages(state.chat).map((message) => (
-									<MessageBubble key={message.id} message={message} />
-								))}
-							</div>
-						</section>
+						<h1 className="sr-only">A letter from Karen at Acme Corp.</h1>
+						{state.letters.map((letter) => (
+							<Letter
+								key={letter.id}
+								text={letter.text}
+								timestamp={letter.timestamp}
+							/>
+						))}
 						<p className="shared-note">
-							Shared by its sender. No PDF attached. The link contains the
-							conversation; no chat is saved on our server.
+							Shared by its sender. The CV file isn’t included, and the letter
+							is stored in the link itself, not on our server.
 						</p>
 					</>
 				)}
-				<a className="primary-button shared-start" href="/">
-					Get my CV roasted <Icon name="arrow" />
+				<a className="button-primary shared-cta" href="/">
+					Apply to Acme Corp. <Icon name="arrow" />
 				</a>
 			</main>
+			<Colophon />
 		</div>
 	);
 }

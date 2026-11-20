@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom/client";
-import { ChatPhone } from "./components/ChatPhone";
+import { ApplyPage } from "./components/ApplyPage";
 import { SharedChatPage } from "./components/SharedChatPage";
 import "./styles.css";
 
@@ -8,6 +8,6 @@ ReactDOM.createRoot(document.getElementById("app")!).render(
 	/^\/share\/?$/.test(window.location.pathname) ? (
 		<SharedChatPage />
 	) : (
-		<ChatPhone />
+		<ApplyPage />
 	),
 );

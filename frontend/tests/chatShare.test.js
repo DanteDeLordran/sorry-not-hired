@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { MessageBubble } from "../src/components/MessageBubble";
+import { Letter } from "../src/components/Letter";
 import {
 	createSharedChat,
 	createShareUrl,
@@ -78,7 +78,9 @@ describe("chat sharing", () => {
 		source[2].text = '<img src=x onerror="alert(1)"> Your claim: “10 years.”';
 		const link = new URL(await createShareUrl(createSharedChat(source), "https://example.com"));
 		const restored = sharedMessages(await readSharedChat(link.hash));
-		const markup = renderToStaticMarkup(createElement(MessageBubble, { message: restored[2] }));
+		const markup = renderToStaticMarkup(
+			createElement(Letter, { text: restored[2].text, timestamp: restored[2].timestamp }),
+		);
 		expect(restored[2].text).toBe(source[2].text);
 		expect(markup).toContain("&lt;img");
 		expect(markup).not.toContain("<img");
