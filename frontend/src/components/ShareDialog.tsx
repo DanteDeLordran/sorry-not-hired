@@ -5,8 +5,9 @@ import {
 	type SharedChat,
 	sharedMessages,
 } from "../lib/chatShare";
+import { letterReplies } from "../lib/letter";
 import { Icon } from "./Icon";
-import { MessageBubble } from "./MessageBubble";
+import { Letter } from "./Letter";
 
 export function ShareDialog({
 	chat,
@@ -58,7 +59,7 @@ export function ShareDialog({
 			setCopyState("copied");
 		} catch {
 			setCopyState("idle");
-			setCopyHint("Select the link below and copy it to share this chat.");
+			setCopyHint("Select the link below and copy it to share this letter.");
 			linkRef.current?.focus();
 			linkRef.current?.select();
 		}
@@ -84,16 +85,21 @@ export function ShareDialog({
 				</button>
 			</div>
 			<p id="share-description" className="share-description">
-				Anyone with the link can read this chat. Your PDF and filename stay out
-				of it. Karen’s replies may still quote details from your CV.
+				Anyone with the link can read this letter. Your PDF and filename stay
+				out of it. Karen’s reply may still quote details from your CV.
 			</p>
-			<section className="share-preview" aria-label="Shared chat preview">
-				{sharedMessages(chat).map((message) => (
-					<MessageBubble key={message.id} message={message} />
+			<section className="share-preview" aria-label="Shared letter preview">
+				{letterReplies(sharedMessages(chat)).map((message) => (
+					<Letter
+						key={message.id}
+						text={message.text}
+						timestamp={message.timestamp}
+						compact
+					/>
 				))}
 			</section>
 			{error ? (
-				<p className="share-error" role="alert">
+				<p className="notice-error" role="alert">
 					{error}
 				</p>
 			) : link ? (
@@ -110,7 +116,7 @@ export function ShareDialog({
 					/>
 					<button
 						type="button"
-						className="primary-button share-copy-button"
+						className="button-primary"
 						disabled={copyState === "copying"}
 						onClick={copyLink}
 					>
@@ -121,7 +127,7 @@ export function ShareDialog({
 						{copyHint ||
 							(copyState === "copied"
 								? "Ready to send. Recipients will see this preview."
-								: "A read-only copy. No chat is saved on our server.")}
+								: "A read-only copy. Nothing is saved on our server.")}
 					</output>
 				</div>
 			) : (

@@ -14,7 +14,7 @@ Version `1.0.0` for both the frontend and backend. The core flow works end to en
 
 For production on Coolify, start with [Coolify: Single Compose File](#coolify-single-compose-file). Container builds, health checks, streaming, request limits, and trusted-proxy HTTPS behavior have been verified locally; public DNS, certificate issuance, and the configured provider still need verification on your deployment server.
 
-The `dev` branch adds read-only chat sharing through self-contained links, without server-side conversation storage. Both package versions remain `1.0.0` until the next release. PDF and chat history retention for analytics are outside the roadmap. See [ROADMAP.md](ROADMAP.md) for scope and remaining release checks.
+Finished roasts can be shared as read-only letters through self-contained links, without server-side conversation storage. Both package versions remain `1.0.0` until the next release. PDF and chat history retention for analytics are outside the roadmap. See [ROADMAP.md](ROADMAP.md) for scope and remaining release checks.
 
 ## Stack
 
@@ -30,15 +30,15 @@ The `dev` branch adds read-only chat sharing through self-contained links, witho
 1. The frontend sends a PDF as `multipart/form-data`.
 2. The backend checks the upload and extracts Markdown from the PDF. A keyword check then rejects text that does not look like a CV. It recognizes English and Spanish, so CVs in other languages may be rejected.
 3. The extracted CV text is sent to the configured LLM.
-4. Karen's response streams into a single chat bubble, with any paragraphs kept inside it. The backend normalizes the final line to exactly `sorry, not hired`. API clients can still request a JSON response.
+4. Karen's response types out as a rejection letter on Acme Corp letterhead, with any paragraphs kept inside it. The backend normalizes the final line to exactly `sorry, not hired`, and the frontend turns that line into the letter's rubber stamp once the stream closes. API clients can still request a JSON response.
 
 There is no database and no user account system. Uploads use temporary files during processing and are deleted afterwards. Docker stores those temporary files in bounded memory-backed filesystems.
 
 ## Sharing A Chat
 
-After a roast finishes, use the link icon in the chat header to open the sharing preview. Review the messages, then choose **Copy link**. If clipboard access is unavailable, select and copy the displayed link manually.
+After a roast finishes, choose **Share this letter** below Karen's letter to open the sharing preview. Review the letter, then choose **Copy link**. If clipboard access is unavailable, select and copy the displayed link manually.
 
-The link opens `/share#v1.<payload>` as a read-only conversation. Recipients can start their own separate roast, but cannot upload, send, reset, or regenerate messages in the shared chat. The link continues to work after the sender resets their chat or closes the page, provided the app remains available and supports the link format.
+The link opens `/share#v1.<payload>` as a read-only letter. Recipients can start their own separate roast, but cannot upload, send, reset, or regenerate anything in the shared letter. The link continues to work after the sender applies again or closes the page, provided the app remains available and supports the link format.
 
 Sharing happens entirely in the browser:
 
@@ -383,7 +383,7 @@ sorry-not-hired/
     tests/          backend and Docker-level checks
   frontend/
     src/
-      components/   chat, share dialog, and shared chat views
+      components/   application form, letter, share dialog, and shared letter views
       lib/          roast stream parsing and share-link encoding
   deploy/           Caddy HTTPS ingress configuration
   compose.yml       app, frontend, and Ollama services
